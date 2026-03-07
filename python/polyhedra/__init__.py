@@ -1,30 +1,45 @@
 """
 polyhedra — Plain-English 3D design library.
 
-Rust-powered geometry kernel exposed through a clean Python API.
+Rust-powered geometry kernel (Dual Contouring SDF mesher) exposed through
+a clean, chainable Python API.
 
-Quick start:
+Quick start::
+
     import polyhedra as ph
 
-    # Create and manipulate an object
-    cube = ph.Object(ph.CUBE, 10, 10, 10)
-    cube.chamfer(1.4, 15)
-    cube.render('cube.stl', refinement=0.001)
+    # Primitives
+    cube = ph.Object(ph.CUBE, 60, 40, 20)       # width, depth, height
+    ball = ph.Object(ph.SPHERE, 10)              # radius
+    cyl  = ph.Object(ph.CYLINDER, 5, 30)         # radius, height
 
-    # Chainable API
-    part = ph.Object(ph.CYLINDER, 5, 20).fillet(2.0).render('cyl.stl', refinement=0.01)
+    # Chainable operations
+    part = (ph.Object(ph.CUBE, 60, 40, 20)
+              .shell(2.5)
+              .fillet(1.0)
+              .translate(0, 0, 10)
+              .render("housing.stl"))
 
-    # Load an existing .polyh file
-    bracket = ph.load('bracket.polyh').chamfer(1.5)
-    bracket.render('bracket.stl', refinement=0.001)
+    # CSG assembly
+    housing = (ph.Assembly("housing")
+                  .place(ph.Object(ph.CUBE, 80, 50, 30))
+                  .cut(ph.Object(ph.CYLINDER, 5, 40).translate(0, 0, 0))
+                  .render("housing.stl"))
 
-    # Compile a main.polyh
-    result = ph.compile('main.polyh', output='stl', refinement=0.001)
+    # Load a .polyh file
+    bracket = ph.load("bracket.polyh")
+    bracket.fillet(1.5).render("bracket_filleted.stl")
+
+    # Operator shortcuts
+    combined = cube + ball            # union
+    cut_part = cube - ball            # difference
+    overlap  = cube & ball            # intersection
 """
 
 from __future__ import annotations
 
-# ── Shape type constants and plane helpers (pure Python) ──────────────────
+# ── Pure-Python types (no Rust required) ──────────────────────────────────────
+
 from .constants import (
     CUBE,
     CYLINDER,
@@ -36,76 +51,51 @@ from .constants import (
     planes,
 )
 
+from .assembly import Assembly
+
+# ── Object class and I/O (require _core at call time, not at import time) ─────
+
+from .object import Object
+from .io import load, compile_polyh, validate
+
 __version__ = "0.1.0"
 
-# ── Rust extension (_core) ────────────────────────────────────────────────
-# Imported at module load time. If _core is not yet compiled, a clear
-# warning guides the user to `maturin develop`.
-try:
-    from ._core import (  # noqa: F401  (re-exported for public use)
-        Object,
-        Sketch,
-        Assembly,
-        load,
-        compile as compile_polyh,
-        validate,
-        watch,
-        join,
-        cut,
-        intersect,
-        boundary_fill,
-        loft,
-        sweep,
-        ruled,
-        stitch,
-        plane_at_angle,
-        plane_mid,
-        plane_tangent,
-        plane_along_path,
-        axis_of,
-        axis,
-        axis_along,
-        point_at,
-    )
-    _core_loaded = True
-except ImportError:
-    _core_loaded = False
-    import warnings
+# ── Optional Rust extension ────────────────────────────────────────────────────
+# Imported lazily by Object / io when first needed.
+# If _core is not compiled, a clear error is raised only when geometry
+# operations are actually attempted — not on `import polyhedra`.
 
+try:
+    from . import _core  # noqa: F401 — verify it's importable
+    _core_available = True
+except ImportError:
+    _core_available = False
+    import warnings
     warnings.warn(
         "\n\n"
         "  polyhedra: Rust extension (_core) not found.\n"
         "  Build it with:\n\n"
         "      cd python/\n"
         "      maturin develop\n\n"
-        "  See docs/quick-start/installation.md for full instructions.\n",
+        "  See README for full installation instructions.\n",
         ImportWarning,
         stacklevel=2,
     )
 
-
-def _require_core() -> None:
-    """Raise a clear error if the Rust extension is not compiled."""
-    if not _core_loaded:
-        raise RuntimeError(
-            "polyhedra._core (Rust extension) is not compiled.\n"
-            "Run `maturin develop` in the python/ directory."
-        )
-
+# ── Public API ─────────────────────────────────────────────────────────────────
 
 __all__ = [
-    # Constants
+    # Shape type constants
     "CUBE", "CYLINDER", "SPHERE", "CONE", "TORUS", "PYRAMID", "PRISM",
+    # Construction planes
     "planes",
-    # Core types (from Rust)
-    "Object", "Sketch", "Assembly",
-    # Functions
-    "load", "compile_polyh", "validate", "watch",
-    "join", "cut", "intersect", "boundary_fill", "loft", "sweep",
-    "ruled", "stitch",
-    # Construction geometry
-    "plane_at_angle", "plane_mid", "plane_tangent", "plane_along_path",
-    "axis_of", "axis", "axis_along", "point_at",
+    # Core classes
+    "Object",
+    "Assembly",
+    # File I/O
+    "load",
+    "compile_polyh",
+    "validate",
     # Meta
     "__version__",
 ]

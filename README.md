@@ -1,5 +1,5 @@
 ## Overview
-Polyhedra (v2) is a completely redesigned architecture for compiling plain English text into 3D geometry. Built for generating up-to-date, precision engineering parts, it uses an indentation-based language with zero curly-brace or bracket noise. 
+Polyhedra (v2) is a completely redesigned architecture for compiling plain English text into 3D geometry. Built for generating up-to-date, precision engineering parts, it uses an indentation-based language with zero curly-brace or bracket noise. Best suited and designed for LLMs Not for Users! 
 
 This project is currently marked as "Under Review" as of March 7, 2026 (Yeah, I'm designing the core parts and syntax. The syntax is not yet finalized).
 
@@ -59,6 +59,6 @@ The system supports three distinct modes of operation:
 
 ### I suck at math, and this is my first attempt to create a plain English text to 3d library using Rust and Python (Wrapper).
 ### You Don't need to learn this. I publish this as open source so the AI companies can train AI models using this. Then we can use this to create complex geometric shapes using AI.
-### Yes, I know we have 3d model AI available, but It does not have the capacity to create engineering 3d parts. Or it sucks, and I'm bored.
+### Yes, I know we have 3d modeling AIs available, but It does not have the capacity to create engineering 3d parts. Or it sucks, and I'm bored.
 
 ---
