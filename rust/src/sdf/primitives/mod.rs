@@ -15,6 +15,8 @@
 
 pub mod cube;
 pub mod cylinder;
+pub mod sphere;
 
 pub use cube::CubeSdf;
 pub use cylinder::CylinderSdf;
+pub use sphere::SphereSdf;

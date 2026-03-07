@@ -58,3 +58,4 @@ htmlcov/
 docs/_build/
 docs/site/
 target
+internal_docs
