@@ -28,19 +28,16 @@ pub mod export;
 
 // ── Python extension module ────────────────────────────────────────────────
 #[cfg(feature = "python")]
+pub mod python;
+
+#[cfg(feature = "python")]
 use pyo3::prelude::*;
 
-/// PyO3 entry point.
-///
-/// maturin looks for this function in lib.rs and uses it as the module
-/// initialiser for `polyhedra/_core.so`.
-///
-/// Symbols are added phase by phase. Phase 0 just verifies the module
-/// loads successfully in Python.
+/// PyO3 entry point — maturin calls this to initialise `polyhedra/_core.so`.
 #[cfg(feature = "python")]
 #[pymodule]
 fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
-    // Phase 1+: register Object, Sketch, Assembly, etc.
+    python::register(m)?;
     Ok(())
 }
