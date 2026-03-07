@@ -19,7 +19,7 @@ pub mod units;
 
 // ── Phases 2+ modules (stubs added per phase) ─────────────────────────────
 // pub mod parser;
-// pub mod manipulations;
+pub mod manipulations;
 // pub mod sketch;
 // pub mod construction;
 // pub mod assembly;
