@@ -18,7 +18,7 @@ pub mod shape_type;
 pub mod units;
 
 // ── Phases 2+ modules (stubs added per phase) ─────────────────────────────
-// pub mod parser;
+pub mod parser;
 pub mod manipulations;
 pub mod sketch;
 // pub mod construction;

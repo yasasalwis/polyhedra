@@ -1,0 +1,156 @@
+// .polyh DSL grammar — pest PEG parser
+//
+// Whitespace and comments are silently skipped between tokens.
+// Newlines are significant only where noted (block terminators use keywords).
+
+// ── Silent rules (automatically skipped) ──────────────────────────────────────
+
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+COMMENT    = _{ "#" ~ (!NEWLINE ~ ANY)* ~ NEWLINE? }
+NEWLINE    = _{ "\r\n" | "\n" | "\r" }
+
+// ── Atoms ──────────────────────────────────────────────────────────────────────
+
+ident  = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
+number = @{ "-"? ~ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
+string = @{ "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+
+// ── Axes ───────────────────────────────────────────────────────────────────────
+
+axis = { "x" | "y" | "z" }
+
+// ── Direction keywords ─────────────────────────────────────────────────────────
+
+direction = {
+    "up"    | "down"  | "left"  | "right" |
+    "+x"    | "-x"    | "+y"    | "-y"    |
+    "+z"    | "-z"
+}
+
+// ── Unit declarations ──────────────────────────────────────────────────────────
+
+unit_kw = { "mm" | "cm" | "m" | "in" | "ft" }
+units_stmt = { "units" ~ unit_kw }
+
+// ── Property line  (key value) ────────────────────────────────────────────────
+// Covers: width 60 / radius 1.6 / sides 6 / etc.
+
+prop_stmt = { ident ~ number }
+
+// ── Move statement ─────────────────────────────────────────────────────────────
+
+move_stmt = { "move" ~ axis ~ number }
+
+// ── Position literal  origin | (x, y, z) ─────────────────────────────────────
+
+position = { "origin" | ("(" ~ number ~ "," ~ number ~ "," ~ number ~ ")") }
+
+// ── Manipulation statements ────────────────────────────────────────────────────
+
+chamfer_stmt  = { "chamfer"  ~ number }
+fillet_stmt   = { "fillet"   ~ number }
+shell_stmt    = { "shell"    ~ number }
+hole_stmt     = { "hole"     ~ number ~ number? }
+thread_stmt   = { "thread"   ~ number ~ number? }
+pattern_stmt  = { "pattern"  ~ ident  ~ number }
+
+manipulation = {
+    chamfer_stmt | fillet_stmt | shell_stmt |
+    hole_stmt    | thread_stmt | pattern_stmt
+}
+
+// ── Primitive blocks ───────────────────────────────────────────────────────────
+
+prim_kw = {
+    "cube" | "sphere" | "cylinder" | "cone" |
+    "torus" | "pyramid" | "prism"
+}
+
+prim_body_item = { units_stmt | prop_stmt | move_stmt }
+
+primitive_block = {
+    prim_kw ~
+    prim_body_item* ~
+    "end"
+}
+
+// ── Define block ───────────────────────────────────────────────────────────────
+
+define_body_item = {
+    units_stmt      |
+    primitive_block |
+    manipulation
+}
+
+define_block = {
+    "define" ~ ident ~
+    define_body_item* ~
+    "end"
+}
+
+// ── Use statement (import another .polyh file) ─────────────────────────────────
+
+use_stmt = { "use" ~ ident }
+
+// ── Assembly operations ────────────────────────────────────────────────────────
+
+place_stmt = { "place" ~ ident ~ "at" ~ position }
+
+cut_stmt = {
+    "cut" ~ ident ~
+    "at" ~ position ~
+    ("pointing" ~ direction)?
+}
+
+join_stmt        = { "join"        ~ ident ~ "at" ~ position }
+intersect_stmt   = { "intersect"   ~ ident ~ "at" ~ position }
+subtract_stmt    = { "subtract"    ~ ident ~ "at" ~ position }
+
+assemble_op = {
+    place_stmt     |
+    cut_stmt       |
+    join_stmt      |
+    intersect_stmt |
+    subtract_stmt
+}
+
+assemble_body_item = { units_stmt | assemble_op | manipulation }
+
+assemble_block = {
+    "assemble" ~ ident ~
+    assemble_body_item* ~
+    "end"
+}
+
+// ── Export block ───────────────────────────────────────────────────────────────
+
+export_format_stmt  = { "format"  ~ ident }
+export_quality_stmt = { "quality" ~ ident }
+export_file_stmt    = { "file"    ~ (string | ident ~ ("." ~ ident)*) }
+
+export_body_item = {
+    export_format_stmt  |
+    export_quality_stmt |
+    export_file_stmt
+}
+
+export_block = {
+    "export" ~
+    export_body_item* ~
+    "end"
+}
+
+// ── Top-level file ─────────────────────────────────────────────────────────────
+
+top_level_item = {
+    use_stmt       |
+    define_block   |
+    assemble_block |
+    export_block
+}
+
+file = {
+    SOI ~
+    top_level_item* ~
+    EOI
+}

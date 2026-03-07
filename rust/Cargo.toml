@@ -4,7 +4,7 @@ version     = "0.1.0"
 edition     = "2024"
 description = "Polyhedra 3D geometry kernel — SDF-based"
 license     = "LGPL-2.1-or-later"
-repository  = "https://github.com/yourusername/polyhedra"
+repository  = "https://github.com/yasasalwis/polyhedra"
 keywords    = ["3d", "cad", "geometry", "sdf", "modeling"]
 categories  = ["graphics", "science", "rendering"]
 
@@ -41,6 +41,10 @@ notify = "6"
 
 # Ergonomic error types
 thiserror = "2"
+
+# .polyh DSL parser — PEG grammar via pest
+pest        = "2"
+pest_derive = "2"
 
 [dev-dependencies]
 # Approximate float comparison in tests
