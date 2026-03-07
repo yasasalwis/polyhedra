@@ -16,11 +16,13 @@
 pub mod cone;
 pub mod cube;
 pub mod cylinder;
+pub mod pyramid;
 pub mod sphere;
 pub mod torus;
 
 pub use cone::ConeSdf;
 pub use cube::CubeSdf;
 pub use cylinder::CylinderSdf;
+pub use pyramid::PyramidSdf;
 pub use sphere::SphereSdf;
 pub use torus::TorusSdf;
