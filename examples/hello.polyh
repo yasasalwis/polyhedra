@@ -1,0 +1,44 @@
+# hello.polyh — Phase 0 example
+#
+# This file demonstrates the .polyh syntax that will be supported
+# once the parser is implemented in Phase 2.
+#
+# Run (Phase 2+):
+#   polyhedra -c main.polyh -o stl
+
+# ── Define a simple bracket ───────────────────────────────────────────────────
+
+define bracket
+  units mm
+
+  # Base plate: 60 × 40 × 5 mm
+  cube
+    width  60
+    depth  40
+    height 5
+  end
+
+  # Vertical wall on top of the base plate
+  cube
+    width  60
+    depth  5
+    height 40
+    move z 5
+  end
+
+  # Chamfer all edges by 1.5 mm for a cleaner look
+  chamfer 1.5
+
+end
+
+# ── Define a mounting hole template ──────────────────────────────────────────
+
+define m3_hole
+  units mm
+
+  cylinder
+    radius  1.6
+    height 20
+  end
+
+end

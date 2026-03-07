@@ -1,0 +1,30 @@
+# main.polyh — Phase 0 example entry point
+#
+# main.polyh is the ONLY file that may contain `assemble` and `export` blocks.
+# It imports objects defined in other .polyh files and combines them.
+#
+# Run (Phase 2+):
+#   polyhedra -c main.polyh -o stl
+#   polyhedra -c main.polyh -o stl,gltf --quality high
+
+use hello
+
+assemble bracket_with_holes
+  units mm
+
+  # Place the bracket at the origin
+  place bracket at origin
+
+  # Cut four M3 mounting holes into the base plate
+  cut m3_hole at (-25, -15, 0) pointing up
+  cut m3_hole at ( 25, -15, 0) pointing up
+  cut m3_hole at (-25,  15, 0) pointing up
+  cut m3_hole at ( 25,  15, 0) pointing up
+
+end
+
+export
+  format stl
+  quality high
+  file   bracket_with_holes.stl
+end
