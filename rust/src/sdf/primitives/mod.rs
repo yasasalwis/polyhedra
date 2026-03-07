@@ -14,5 +14,7 @@
 //!   Phase 7  — PrismSdf
 
 pub mod cube;
+pub mod cylinder;
 
 pub use cube::CubeSdf;
+pub use cylinder::CylinderSdf;
