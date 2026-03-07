@@ -23,7 +23,7 @@ pub mod units;
 // pub mod sketch;
 // pub mod construction;
 // pub mod assembly;
-// pub mod mesher;
+pub mod mesher;
 // pub mod export;
 
 // ── Python extension module ────────────────────────────────────────────────
