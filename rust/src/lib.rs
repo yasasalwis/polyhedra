@@ -24,7 +24,7 @@ pub mod sketch;
 // pub mod construction;
 // pub mod assembly;
 pub mod mesher;
-// pub mod export;
+pub mod export;
 
 // ── Python extension module ────────────────────────────────────────────────
 #[cfg(feature = "python")]
