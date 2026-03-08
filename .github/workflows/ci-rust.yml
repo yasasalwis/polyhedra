@@ -1,0 +1,138 @@
+name: Rust CI
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - "rust-core/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/ci-rust.yml"
+    tags:
+      - "v*"
+  pull_request:
+    branches: [main]
+    paths:
+      - "rust-core/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/ci-rust.yml"
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # ── Format / lint / test ──────────────────────────────────────────────────
+  build-and-test:
+    name: Rust (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            binary: polyhedra
+            asset_name: polyhedra-linux-x86_64
+          - os: macos-latest
+            binary: polyhedra
+            asset_name: polyhedra-macos-aarch64
+          - os: windows-latest
+            binary: polyhedra.exe
+            asset_name: polyhedra-windows-x86_64.exe
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Cargo registry + build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            rust-core/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('rust-core/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Check formatting
+        working-directory: rust-core
+        run: cargo fmt --check
+
+      - name: Clippy
+        working-directory: rust-core
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Build CLI (release)
+        working-directory: rust-core
+        run: cargo build --release --bin polyhedra
+
+      - name: Run tests
+        working-directory: rust-core
+        run: cargo test --lib --tests
+
+      # Rename binary to platform-specific asset name before upload
+      - name: Stage binary (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          cp rust-core/target/release/${{ matrix.binary }} ${{ matrix.asset_name }}
+
+      - name: Stage binary (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          copy rust-core\target\release\${{ matrix.binary }} ${{ matrix.asset_name }}
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: ${{ matrix.asset_name }}
+
+  # ── GitHub Release (only on v* tags) ────────────────────────────────────
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all binaries
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "polyhedra ${{ github.ref_name }}"
+          body: |
+            ## polyhedra CLI ${{ github.ref_name }}
+
+            Standalone CLI binaries — no Python or Rust toolchain required.
+
+            | Platform     | File                              |
+            |--------------|-----------------------------------|
+            | Linux x86_64 | `polyhedra-linux-x86_64`          |
+            | macOS ARM64  | `polyhedra-macos-aarch64`         |
+            | Windows x64  | `polyhedra-windows-x86_64.exe`    |
+
+            ### Usage
+            ```
+            polyhedra -c main.polyh -o stl,obj
+            polyhedra -c main.polyh --validate
+            ```
+
+            See the [full changelog](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md).
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          files: release-assets/*

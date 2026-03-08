@@ -20,7 +20,7 @@ polyhedra/
 # From project root
 pip install maturin
 python -m maturin develop --features python   # build _core extension
-pip install -e python/                         # install polyhedra in editable mode
+pip install -e python-wrapper/                         # install polyhedra in editable mode
 
 # Run tests
 python -m pytest python/tests/ -v

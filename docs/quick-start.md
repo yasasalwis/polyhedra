@@ -11,7 +11,7 @@ polyhedra ships as a Python extension backed by a Rust SDF kernel. Build it in-p
 ```bash
 pip install maturin
 maturin develop --release   # compile the Rust extension and install into the current venv
-pip install -e python/      # install the Python wrapper in editable mode
+pip install -e python-wrapper/      # install the Python wrapper in editable mode
 ```
 
 Verify the install:

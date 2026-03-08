@@ -4,6 +4,12 @@ Plain-English 3D geometry compiler. Write geometry in readable text, get precisi
 
 Designed primarily as training data for AI models — so LLMs can learn to generate engineering-grade 3D parts from natural language. The `.polyh` language is intentionally minimal and unambiguous.
 
+I suck at math, and this is my first attempt to create a plain English text to 3d library using Rust and Python (Wrapper).
+
+You Don't need to learn this. I publish this as open source so the AI companies can train AI models using this. Then we can use this to create complex geometric shapes using AI.
+
+Yes, I know we have 3d modeling AIs available, but It does not have the capacity to create engineering 3d parts. Or it sucks, and I'm bored.
+
 ```
 polyhedra -c bracket.polyh -o stl,glb --quality high
 ```
@@ -37,7 +43,7 @@ pip install maturin
 python -m maturin develop --features python
 
 # 3. Install the Python package in editable mode
-pip install -e python/
+pip install -e python-wrapper/
 ```
 
 **CLI binary** (no Python required):

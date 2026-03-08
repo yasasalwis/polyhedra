@@ -1,0 +1,202 @@
+name: Auto Version
+
+# Runs on every push to main. Reads commits since the last tag, determines
+# the semver bump (major / minor / patch) from conventional commit prefixes,
+# updates version in all three source files, commits, and pushes a v* tag.
+#
+# The v* tag automatically triggers the release jobs in ci-rust.yml and
+# ci-python.yml — no manual steps required.
+#
+# Bump rules (conventional commits):
+#   BREAKING CHANGE: / feat!: / fix!:  →  major
+#   feat:                               →  minor
+#   anything else (fix:, chore:, …)    →  patch
+#
+# Skip conditions:
+#   - The latest commit message starts with "chore(release):" (bot commit)
+#   - HEAD is already pointed to by a v* tag
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    name: Detect & bump version
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout (full history for tag lookup)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # Use a PAT so the commit + tag push can trigger downstream workflows.
+          # Fall back to GITHUB_TOKEN if the secret is absent (downstream tag
+          # workflows won't fire in that case, but the tag is still created).
+          token: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+
+      # ── Guard: skip if this commit is already a bot version-bump ──────────
+      - name: Check if this is a bot version-bump commit
+        id: guard
+        run: |
+          MSG=$(git log -1 --pretty=format:"%s")
+          if echo "$MSG" | grep -q "^chore(release):"; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping: this is a version-bump commit."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── Guard: skip if HEAD is already tagged ─────────────────────────────
+      - name: Check if HEAD is already tagged
+        id: tagged
+        if: steps.guard.outputs.skip == 'false'
+        run: |
+          if git describe --exact-match --match "v*" HEAD 2>/dev/null; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping: HEAD is already tagged."
+          else
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── Read current version from pyproject.toml ──────────────────────────
+      - name: Read current version
+        id: current
+        if: steps.guard.outputs.skip == 'false' && steps.tagged.outputs.skip != 'true'
+        run: |
+          VER=$(grep '^version' python-wrapper/pyproject.toml \
+                | head -1 \
+                | sed 's/version[[:space:]]*=[[:space:]]*"\(.*\)"/\1/')
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "Current version: $VER"
+
+      # ── Collect commits since last tag ────────────────────────────────────
+      - name: Gather commits since last tag
+        id: commits
+        if: steps.guard.outputs.skip == 'false' && steps.tagged.outputs.skip != 'true'
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 --match "v*" 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            LOG=$(git log --pretty=format:"%s")
+          else
+            LOG=$(git log --pretty=format:"%s" "${LAST_TAG}..HEAD")
+          fi
+          echo "last_tag=$LAST_TAG" >> "$GITHUB_OUTPUT"
+          # Store log as multiline output (base64 to avoid newline issues)
+          echo "log=$(echo "$LOG" | base64 -w 0)" >> "$GITHUB_OUTPUT"
+          echo "Commits since $LAST_TAG:"
+          echo "$LOG"
+
+      # ── Determine bump type ───────────────────────────────────────────────
+      - name: Determine bump type
+        id: bump
+        if: steps.guard.outputs.skip == 'false' && steps.tagged.outputs.skip != 'true'
+        run: |
+          LOG=$(echo "${{ steps.commits.outputs.log }}" | base64 -d)
+          BUMP="patch"
+
+          if echo "$LOG" | grep -qE "^[a-zA-Z]+(\(.+\))?!:|^BREAKING CHANGE:"; then
+            BUMP="major"
+          elif echo "$LOG" | grep -qE "^feat(\(.+\))?:"; then
+            BUMP="minor"
+          fi
+
+          echo "bump=$BUMP" >> "$GITHUB_OUTPUT"
+          echo "Bump type: $BUMP"
+
+      # ── Calculate new version ─────────────────────────────────────────────
+      - name: Calculate new version
+        id: newver
+        if: steps.guard.outputs.skip == 'false' && steps.tagged.outputs.skip != 'true'
+        run: |
+          VER="${{ steps.current.outputs.version }}"
+          BUMP="${{ steps.bump.outputs.bump }}"
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VER"
+
+          case "$BUMP" in
+            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH + 1)) ;;
+          esac
+
+          NEW="${MAJOR}.${MINOR}.${PATCH}"
+          echo "version=$NEW" >> "$GITHUB_OUTPUT"
+          echo "New version: $NEW"
+
+      # ── Update version in all three source files ──────────────────────────
+      - name: Update python-wrapper/pyproject.toml
+        if: steps.guard.outputs.skip == 'false' && steps.tagged.outputs.skip != 'true'
+        run: |
+          NEW="${{ steps.newver.outputs.version }}"
+          sed -i "s/^version[[:space:]]*=.*$/version         = \"${NEW}\"/" \
+            python-wrapper/pyproject.toml
+          grep "^version" python-wrapper/pyproject.toml
+
+      - name: Update rust-core/Cargo.toml (package version only)
+        if: steps.guard.outputs.skip == 'false' && steps.tagged.outputs.skip != 'true'
+        run: |
+          NEW="${{ steps.newver.outputs.version }}"
+          # Only replace the first occurrence (the [package] version, not deps)
+          perl -i -0pe \
+            "s/^(version\s*=\s*)\"[^\"]+\"/\${1}\"${NEW}\"/m" \
+            rust-core/Cargo.toml
+          grep "^version" rust-core/Cargo.toml
+
+      - name: Update python-wrapper/polyhedra/__init__.py
+        if: steps.guard.outputs.skip == 'false' && steps.tagged.outputs.skip != 'true'
+        run: |
+          NEW="${{ steps.newver.outputs.version }}"
+          sed -i "s/__version__[[:space:]]*=.*$/__version__ = \"${NEW}\"/" \
+            python-wrapper/polyhedra/__init__.py
+          grep "__version__" python-wrapper/polyhedra/__init__.py
+
+      # ── Build the changelog entry for this release ────────────────────────
+      - name: Build release notes
+        id: notes
+        if: steps.guard.outputs.skip == 'false' && steps.tagged.outputs.skip != 'true'
+        run: |
+          LOG=$(echo "${{ steps.commits.outputs.log }}" | base64 -d)
+          NOTES="## What's Changed\n\n"
+          while IFS= read -r line; do
+            NOTES+="- ${line}\n"
+          done <<< "$LOG"
+          # Store multiline string safely
+          echo "notes=$(echo -e "$NOTES" | base64 -w 0)" >> "$GITHUB_OUTPUT"
+
+      # ── Commit version bump ───────────────────────────────────────────────
+      - name: Commit version bump
+        if: steps.guard.outputs.skip == 'false' && steps.tagged.outputs.skip != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add \
+            python-wrapper/pyproject.toml \
+            rust-core/Cargo.toml \
+            python-wrapper/polyhedra/__init__.py
+          git commit -m "chore(release): bump version to ${{ steps.newver.outputs.version }}"
+
+      # ── Tag and push ──────────────────────────────────────────────────────
+      - name: Create and push tag
+        if: steps.guard.outputs.skip == 'false' && steps.tagged.outputs.skip != 'true'
+        run: |
+          TAG="v${{ steps.newver.outputs.version }}"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin main "$TAG"
+          echo "Pushed tag $TAG — release workflows will now run."
+
+      # ── Summary ───────────────────────────────────────────────────────────
+      - name: Print summary
+        if: steps.guard.outputs.skip == 'false' && steps.tagged.outputs.skip != 'true'
+        run: |
+          echo "### Version bumped" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Previous | \`${{ steps.current.outputs.version }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| New      | \`${{ steps.newver.outputs.version }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Bump     | ${{ steps.bump.outputs.bump }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Tag      | \`v${{ steps.newver.outputs.version }}\` |" >> $GITHUB_STEP_SUMMARY
