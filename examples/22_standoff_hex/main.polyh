@@ -1,0 +1,31 @@
+# 22_standoff_hex — Hexagonal PCB standoff, outer hex radius 5 mm, bore 1.5 mm, height 12 mm
+# Compile: polyhedra -c main.polyh -o stl
+
+define body
+  units mm
+  prism
+    sides  6
+    radius  5
+    height 12
+  end
+end
+
+define bore
+  units mm
+  cylinder
+    radius 1.5
+    height 12
+  end
+end
+
+assemble standoff_hex
+  units mm
+  place body at origin
+  cut   bore at origin
+end
+
+export
+  format stl
+  quality medium
+  file   standoff_hex.stl
+end

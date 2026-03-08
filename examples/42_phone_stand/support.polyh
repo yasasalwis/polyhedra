@@ -1,0 +1,23 @@
+# Phone Stand - back support and shelf
+
+define back_support
+  units mm
+  cube
+    width  80
+    depth  5
+    height 60
+    move y -27
+    move z 5
+  end
+end
+
+define shelf
+  units mm
+  cube
+    width  80
+    depth  15
+    height 3
+    move y -27
+    move z 10
+  end
+end

@@ -1,0 +1,30 @@
+# 23_pipe_section — Pipe section, outer radius 12 mm, wall 2 mm, length 50 mm
+# Compile: polyhedra -c main.polyh -o stl
+
+define pipe_outer
+  units mm
+  cylinder
+    radius 12
+    height 50
+  end
+end
+
+define pipe_bore
+  units mm
+  cylinder
+    radius 10
+    height 50
+  end
+end
+
+assemble pipe_section
+  units mm
+  place pipe_outer at origin
+  cut   pipe_bore  at origin
+end
+
+export
+  format stl
+  quality medium
+  file   pipe_section.stl
+end

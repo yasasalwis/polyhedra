@@ -1,0 +1,9 @@
+# Heat Sink Pin Array - individual pin post
+
+define pin_post
+  units mm
+  cylinder
+    radius 2
+    height 15
+  end
+end

@@ -1,0 +1,54 @@
+# Example 31: Motor Mount
+# A flat base plate with a central raised boss for a motor body, shaft bore, and four M3 mounting holes.
+# Used to secure a brushless or stepper motor to a frame.
+
+define base_plate
+  units mm
+  cube
+    width  80
+    depth  60
+    height 5
+  end
+end
+
+define motor_boss
+  units mm
+  cylinder
+    radius 20
+    height 8
+    move z 5
+  end
+end
+
+define shaft_bore
+  units mm
+  cylinder
+    radius 6
+    height 25
+  end
+end
+
+define m3_hole
+  units mm
+  cylinder
+    radius 1.6
+    height 7
+  end
+end
+
+assemble motor_mount
+  units mm
+  place base_plate at origin
+  join  motor_boss at origin
+  cut   shaft_bore at origin
+  cut   m3_hole at (28, 0, 0)
+  cut   m3_hole at (-28, 0, 0)
+  cut   m3_hole at (0, 28, 0)
+  cut   m3_hole at (0, -28, 0)
+end
+
+export
+  format stl
+  quality medium
+  file output.stl
+end

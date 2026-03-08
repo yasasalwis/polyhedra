@@ -1,0 +1,10 @@
+# Heat Sink Pin Array - base block
+
+define base_block
+  units mm
+  cube
+    width  50
+    depth  50
+    height 5
+  end
+end

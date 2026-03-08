@@ -1,0 +1,31 @@
+# Example 37: Spacer Ring
+# A simple tubular spacer used to maintain a precise gap between components.
+# Common in bolt assemblies and bearing stacks.
+
+define outer
+  units mm
+  cylinder
+    radius 12
+    height 5
+  end
+end
+
+define bore
+  units mm
+  cylinder
+    radius 8
+    height 7
+  end
+end
+
+assemble spacer_ring
+  units mm
+  place outer at origin
+  cut   bore at origin
+end
+
+export
+  format stl
+  quality medium
+  file output.stl
+end

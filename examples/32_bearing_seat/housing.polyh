@@ -1,0 +1,26 @@
+# Bearing Seat - housing body with bearing pocket and through bore
+
+define housing_outer
+  units mm
+  cylinder
+    radius 30
+    height 25
+  end
+end
+
+define bearing_bore
+  units mm
+  cylinder
+    radius 22
+    height 15
+    move z 5
+  end
+end
+
+define through_bore
+  units mm
+  cylinder
+    radius 11
+    height 27
+  end
+end

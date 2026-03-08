@@ -1,0 +1,11 @@
+# Corner Bracket - horizontal plate B
+
+define plate_b
+  units mm
+  cube
+    width  40
+    depth  40
+    height 4
+    move z -18
+  end
+end

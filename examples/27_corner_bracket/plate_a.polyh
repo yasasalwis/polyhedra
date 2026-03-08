@@ -1,0 +1,10 @@
+# Corner Bracket - vertical plate A
+
+define plate_a
+  units mm
+  cube
+    width  40
+    depth  4
+    height 40
+  end
+end

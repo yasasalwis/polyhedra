@@ -1,0 +1,17 @@
+# 02_cube — 20 × 20 × 20 mm cube
+# Compile: polyhedra -c main.polyh -o stl
+
+define cube_20mm
+  units mm
+  cube
+    width  20
+    depth  20
+    height 20
+  end
+end
+
+export
+  format stl
+  quality medium
+  file   cube_20mm.stl
+end

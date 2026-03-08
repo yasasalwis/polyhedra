@@ -1,0 +1,17 @@
+# 15_capsule — Capsule shape: cylinder with hemispherical caps, radius 6 mm, height 24 mm
+# Compile: polyhedra -c main.polyh -o stl
+
+define capsule_body
+  units mm
+  cylinder
+    radius 6
+    height 24
+  end
+  fillet 6
+end
+
+export
+  format stl
+  quality medium
+  file   capsule.stl
+end

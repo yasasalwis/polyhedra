@@ -1,0 +1,52 @@
+# Example 29: Flange Disc
+# A circular flange with a raised center hub, central bore, and four bolt holes.
+# Used as a shaft flange or coupling plate in mechanical assemblies.
+
+define disc
+  units mm
+  cylinder
+    radius 40
+    height 8
+  end
+end
+
+define hub
+  units mm
+  cylinder
+    radius 15
+    height 14
+  end
+end
+
+define bore
+  units mm
+  cylinder
+    radius 8
+    height 16
+  end
+end
+
+define bolt_hole
+  units mm
+  cylinder
+    radius 4
+    height 10
+  end
+end
+
+assemble flange_disc
+  units mm
+  place disc at origin
+  join  hub at (0, 0, 3)
+  cut   bore at origin
+  cut   bolt_hole at (28, 0, 0)
+  cut   bolt_hole at (-28, 0, 0)
+  cut   bolt_hole at (0, 28, 0)
+  cut   bolt_hole at (0, -28, 0)
+end
+
+export
+  format stl
+  quality medium
+  file output.stl
+end

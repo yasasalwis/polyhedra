@@ -1,0 +1,49 @@
+# Example 35: Shaft Coupling
+# A two-part rigid shaft coupling joining two shafts of different diameters.
+# Each half has its own bore size to accommodate shafts of different sizes.
+
+define half_a
+  units mm
+  cylinder
+    radius 15
+    height 20
+  end
+end
+
+define half_b
+  units mm
+  cylinder
+    radius 15
+    height 20
+  end
+end
+
+define bore_a
+  units mm
+  cylinder
+    radius 6
+    height 22
+  end
+end
+
+define bore_b
+  units mm
+  cylinder
+    radius 8
+    height 22
+  end
+end
+
+assemble shaft_coupling
+  units mm
+  place half_a at origin
+  join  half_b at (0, 0, 20)
+  cut   bore_a at origin
+  cut   bore_b at (0, 0, 20)
+end
+
+export
+  format stl
+  quality medium
+  file output.stl
+end

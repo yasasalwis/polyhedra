@@ -1,0 +1,32 @@
+# Example 30: Shaft Collar
+# A cylindrical collar that clamps onto a shaft.
+# Used to locate or retain components on a rotating shaft.
+
+define collar_outer
+  units mm
+  cylinder
+    radius 18
+    height 20
+  end
+end
+
+define collar_bore
+  units mm
+  cylinder
+    radius 10
+    height 22
+  end
+end
+
+assemble shaft_collar
+  units mm
+  place collar_outer at origin
+  cut   collar_bore at origin
+  chamfer 1
+end
+
+export
+  format stl
+  quality medium
+  file output.stl
+end

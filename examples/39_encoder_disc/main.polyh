@@ -1,0 +1,41 @@
+# Example 39: Encoder Disc
+# A thin optical encoder disc with a central hub and shaft bore.
+# Slots or markings would be added around the perimeter for position sensing.
+
+define disc
+  units mm
+  cylinder
+    radius 25
+    height 2
+  end
+end
+
+define hub
+  units mm
+  cylinder
+    radius 5
+    height 6
+    move z -2
+  end
+end
+
+define bore
+  units mm
+  cylinder
+    radius 3
+    height 10
+  end
+end
+
+assemble encoder_disc
+  units mm
+  place disc at origin
+  join  hub at origin
+  cut   bore at origin
+end
+
+export
+  format stl
+  quality medium
+  file output.stl
+end

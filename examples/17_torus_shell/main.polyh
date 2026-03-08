@@ -1,0 +1,17 @@
+# 17_torus_shell — Hollow torus shell, major 18 mm, minor 5 mm, wall 1.5 mm
+# Compile: polyhedra -c main.polyh -o stl
+
+define torus_shell
+  units mm
+  torus
+    major_radius 18
+    minor_radius  5
+  end
+  shell 1.5
+end
+
+export
+  format stl
+  quality medium
+  file   torus_shell.stl
+end

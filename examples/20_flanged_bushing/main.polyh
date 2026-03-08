@@ -1,0 +1,40 @@
+# 20_flanged_bushing — Flanged bushing: wide flange base + narrow shaft, all hollow
+# Compile: polyhedra -c main.polyh -o stl
+
+define flange
+  units mm
+  cylinder
+    radius 14
+    height  4
+  end
+end
+
+define shaft
+  units mm
+  cylinder
+    radius  8
+    height 20
+    move   z 4
+  end
+end
+
+define bore
+  units mm
+  cylinder
+    radius  5
+    height 24
+  end
+end
+
+assemble flanged_bushing
+  units mm
+  place flange at origin
+  join  shaft  at origin
+  cut   bore   at origin
+end
+
+export
+  format stl
+  quality medium
+  file   flanged_bushing.stl
+end

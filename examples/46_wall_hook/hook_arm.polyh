@@ -1,0 +1,20 @@
+# Wall Hook - hook arm and mounting hole
+
+define hook_arm
+  units mm
+  cube
+    width  5
+    depth  40
+    height 5
+    move z 20
+    move y 2
+  end
+end
+
+define m4_hole
+  units mm
+  cylinder
+    radius 2
+    height 7
+  end
+end

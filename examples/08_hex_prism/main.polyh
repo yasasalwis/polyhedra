@@ -1,0 +1,17 @@
+# 08_hex_prism — Regular hexagonal prism, radius 10 mm, height 20 mm
+# Compile: polyhedra -c main.polyh -o stl
+
+define hex_prism
+  units mm
+  prism
+    sides  6
+    radius 10
+    height 20
+  end
+end
+
+export
+  format stl
+  quality medium
+  file   hex_prism.stl
+end

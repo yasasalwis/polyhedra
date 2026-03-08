@@ -1,0 +1,15 @@
+# 01_sphere — Basic sphere, radius 10 mm
+# Compile: polyhedra -c main.polyh -o stl
+
+define sphere_10mm
+  units mm
+  sphere
+    radius 10
+  end
+end
+
+export
+  format stl
+  quality medium
+  file   sphere_10mm.stl
+end

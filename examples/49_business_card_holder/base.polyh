@@ -1,0 +1,10 @@
+# Business Card Holder - base plate
+
+define base
+  units mm
+  cube
+    width  100
+    depth  70
+    height 4
+  end
+end

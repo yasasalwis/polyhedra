@@ -1,0 +1,16 @@
+# 03_cylinder — Cylinder, radius 8 mm, height 30 mm
+# Compile: polyhedra -c main.polyh -o stl
+
+define cylinder_r8_h30
+  units mm
+  cylinder
+    radius  8
+    height 30
+  end
+end
+
+export
+  format stl
+  quality high
+  file   cylinder.stl
+end

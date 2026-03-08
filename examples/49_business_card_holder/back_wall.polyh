@@ -1,0 +1,23 @@
+# Business Card Holder - back wall and front ledge
+
+define back_wall
+  units mm
+  cube
+    width  100
+    depth  4
+    height 40
+    move z 4
+    move y -33
+  end
+end
+
+define front_ledge
+  units mm
+  cube
+    width  100
+    depth  10
+    height 3
+    move z 4
+    move y 30
+  end
+end

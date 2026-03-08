@@ -1,0 +1,32 @@
+# Example 36: Clevis Pin
+# A headed cylindrical pin used to connect clevis forks and rod ends.
+# The enlarged head prevents the pin from pulling through the joint.
+
+define head
+  units mm
+  cylinder
+    radius 6
+    height 4
+  end
+end
+
+define shaft
+  units mm
+  cylinder
+    radius 4
+    height 30
+    move z -30
+  end
+end
+
+assemble clevis_pin
+  units mm
+  place head at origin
+  join  shaft at origin
+end
+
+export
+  format stl
+  quality medium
+  file output.stl
+end

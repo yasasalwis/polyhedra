@@ -1,0 +1,33 @@
+# Example 48: Key Tag
+# A small rectangular tag with a hole for attaching to a key ring.
+# Can be labelled to identify keys in a collection.
+
+define tag_body
+  units mm
+  cube
+    width  45
+    depth  25
+    height 3
+  end
+end
+
+define hole
+  units mm
+  cylinder
+    radius 3
+    height 5
+  end
+end
+
+assemble key_tag
+  units mm
+  place tag_body at origin
+  cut   hole at (-17, 0, 0)
+  fillet 3
+end
+
+export
+  format stl
+  quality medium
+  file output.stl
+end

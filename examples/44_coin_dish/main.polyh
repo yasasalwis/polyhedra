@@ -1,0 +1,33 @@
+# Example 44: Coin Dish
+# A shallow circular dish for holding coins or small items on a desk.
+# The recessed interior keeps items from sliding off.
+
+define outer
+  units mm
+  cylinder
+    radius 60
+    height 15
+  end
+end
+
+define inner
+  units mm
+  cylinder
+    radius 57
+    height 12
+    move z 3
+  end
+end
+
+assemble coin_dish
+  units mm
+  place outer at origin
+  cut   inner at origin
+  fillet 5
+end
+
+export
+  format stl
+  quality medium
+  file output.stl
+end

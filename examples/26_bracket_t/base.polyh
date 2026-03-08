@@ -1,0 +1,11 @@
+# T-Bracket - base plate part
+# Horizontal bar of the T-bracket
+
+define base_plate
+  units mm
+  cube
+    width  80
+    depth  6
+    height 20
+  end
+end

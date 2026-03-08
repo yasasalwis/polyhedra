@@ -1,0 +1,16 @@
+# 13_hollow_sphere — Hollow sphere, outer radius 15 mm, wall 2 mm
+# Compile: polyhedra -c main.polyh -o stl
+
+define hollow_sphere
+  units mm
+  sphere
+    radius 15
+  end
+  shell 2
+end
+
+export
+  format stl
+  quality medium
+  file   hollow_sphere.stl
+end

@@ -1,0 +1,32 @@
+# Example 47: Shelf Peg
+# A cylindrical shelf support peg with a wide flange base.
+# Inserts into cabinet side holes to support adjustable shelves.
+
+define peg_base
+  units mm
+  cylinder
+    radius 8
+    height 5
+    move z -5
+  end
+end
+
+define peg_post
+  units mm
+  cylinder
+    radius 4
+    height 30
+  end
+end
+
+assemble shelf_peg
+  units mm
+  place peg_base at origin
+  join  peg_post at origin
+end
+
+export
+  format stl
+  quality medium
+  file output.stl
+end

@@ -1,0 +1,17 @@
+# 10_oct_prism — Octagonal prism, radius 10 mm, height 15 mm
+# Compile: polyhedra -c main.polyh -o stl
+
+define oct_prism
+  units mm
+  prism
+    sides  8
+    radius 10
+    height 15
+  end
+end
+
+export
+  format stl
+  quality medium
+  file   oct_prism.stl
+end

@@ -1,0 +1,30 @@
+# 19_washer — Flat washer, outer radius 10 mm, inner radius 5 mm, height 2 mm
+# Compile: polyhedra -c main.polyh -o stl
+
+define washer_outer
+  units mm
+  cylinder
+    radius 10
+    height  2
+  end
+end
+
+define washer_hole
+  units mm
+  cylinder
+    radius 5
+    height  2
+  end
+end
+
+assemble washer
+  units mm
+  place washer_outer at origin
+  cut   washer_hole  at origin
+end
+
+export
+  format stl
+  quality medium
+  file   washer.stl
+end

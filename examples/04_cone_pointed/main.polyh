@@ -1,0 +1,16 @@
+# 04_cone_pointed — Sharp-tipped cone, radius 10 mm, height 40 mm
+# Compile: polyhedra -c main.polyh -o stl
+
+define cone_pointed
+  units mm
+  cone
+    radius 10
+    height 40
+  end
+end
+
+export
+  format stl
+  quality medium
+  file   cone_pointed.stl
+end

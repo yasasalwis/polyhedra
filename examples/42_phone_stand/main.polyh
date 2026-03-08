@@ -1,0 +1,48 @@
+# Example 42: Phone Stand
+# A desk phone stand with a flat base, angled back support, and a front shelf ledge.
+# Holds a smartphone at a comfortable viewing angle.
+
+define base
+  units mm
+  cube
+    width  80
+    depth  60
+    height 5
+  end
+end
+
+define back_support
+  units mm
+  cube
+    width  80
+    depth  5
+    height 60
+    move y -27
+    move z 5
+  end
+end
+
+define shelf
+  units mm
+  cube
+    width  80
+    depth  15
+    height 3
+    move y -27
+    move z 10
+  end
+end
+
+assemble phone_stand
+  units mm
+  place base at origin
+  join  back_support at origin
+  join  shelf at origin
+  fillet 2
+end
+
+export
+  format stl
+  quality medium
+  file output.stl
+end

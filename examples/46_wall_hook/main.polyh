@@ -1,0 +1,45 @@
+# Example 46: Wall Hook
+# A wall-mounted hook with a flat backplate, a protruding arm, and two M4 mounting holes.
+# Used for hanging coats, bags, or tools on a wall.
+
+define backplate
+  units mm
+  cube
+    width  30
+    depth  5
+    height 40
+  end
+end
+
+define hook_arm
+  units mm
+  cube
+    width  5
+    depth  40
+    height 5
+    move z 20
+    move y 2
+  end
+end
+
+define m4_hole
+  units mm
+  cylinder
+    radius 2
+    height 7
+  end
+end
+
+assemble wall_hook
+  units mm
+  place backplate at origin
+  join  hook_arm at origin
+  cut   m4_hole at (0, -2, 10)
+  cut   m4_hole at (0, -2, -10)
+end
+
+export
+  format stl
+  quality medium
+  file output.stl
+end

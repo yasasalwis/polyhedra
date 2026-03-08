@@ -1,0 +1,17 @@
+# 16_filleted_cylinder — Cylinder with 2 mm fillet on top and bottom edges
+# Compile: polyhedra -c main.polyh -o stl
+
+define filleted_cyl
+  units mm
+  cylinder
+    radius 12
+    height 30
+  end
+  fillet 2
+end
+
+export
+  format stl
+  quality medium
+  file   filleted_cylinder.stl
+end

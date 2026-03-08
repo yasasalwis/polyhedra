@@ -1,0 +1,10 @@
+# Phone Stand - base plate
+
+define base
+  units mm
+  cube
+    width  80
+    depth  60
+    height 5
+  end
+end

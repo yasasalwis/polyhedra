@@ -1,0 +1,17 @@
+# 05_cone_frustum — Truncated cone (frustum), base 14 mm, top 6 mm, height 20 mm
+# Compile: polyhedra -c main.polyh -o stl
+
+define cone_frustum
+  units mm
+  cone
+    radius      14
+    top_radius   6
+    height      20
+  end
+end
+
+export
+  format stl
+  quality medium
+  file   cone_frustum.stl
+end

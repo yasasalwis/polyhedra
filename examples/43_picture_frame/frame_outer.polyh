@@ -1,0 +1,10 @@
+# Picture Frame - outer frame body
+
+define frame_outer
+  units mm
+  cube
+    width  160
+    depth  120
+    height 15
+  end
+end

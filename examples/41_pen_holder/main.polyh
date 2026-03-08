@@ -1,0 +1,33 @@
+# Example 41: Pen Holder
+# A cylindrical open-top cup for holding pens and pencils on a desk.
+# Thick walls provide stability and the open top allows easy access.
+
+define body_outer
+  units mm
+  cylinder
+    radius 30
+    height 80
+  end
+end
+
+define body_bore
+  units mm
+  cylinder
+    radius 27
+    height 77
+    move z 3
+  end
+end
+
+assemble pen_holder
+  units mm
+  place body_outer at origin
+  cut   body_bore at origin
+  fillet 2
+end
+
+export
+  format stl
+  quality medium
+  file output.stl
+end

@@ -1,0 +1,16 @@
+# 07_pyramid — Square-base pyramid, base 24 mm, height 30 mm
+# Compile: polyhedra -c main.polyh -o stl
+
+define pyramid_sq
+  units mm
+  pyramid
+    base   24
+    height 30
+  end
+end
+
+export
+  format stl
+  quality medium
+  file   pyramid.stl
+end

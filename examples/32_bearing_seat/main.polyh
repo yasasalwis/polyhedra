@@ -1,0 +1,42 @@
+# Example 32: Bearing Seat
+# A cylindrical housing with a stepped bore to retain a ball bearing.
+# The through bore accommodates a shaft passing through the bearing.
+
+define housing_outer
+  units mm
+  cylinder
+    radius 30
+    height 25
+  end
+end
+
+define bearing_bore
+  units mm
+  cylinder
+    radius 22
+    height 15
+    move z 5
+  end
+end
+
+define through_bore
+  units mm
+  cylinder
+    radius 11
+    height 27
+  end
+end
+
+assemble bearing_seat
+  units mm
+  place housing_outer at origin
+  cut   bearing_bore at origin
+  cut   through_bore at origin
+  chamfer 1
+end
+
+export
+  format stl
+  quality medium
+  file output.stl
+end

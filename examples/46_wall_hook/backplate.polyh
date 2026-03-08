@@ -1,0 +1,10 @@
+# Wall Hook - backplate
+
+define backplate
+  units mm
+  cube
+    width  30
+    depth  5
+    height 40
+  end
+end

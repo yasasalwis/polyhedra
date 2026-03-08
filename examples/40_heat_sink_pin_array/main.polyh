@@ -1,0 +1,40 @@
+# Example 40: Heat Sink Pin Array
+# A square base heat sink with a 3x3 array of cylindrical pin fins.
+# Pin arrays provide good omni-directional airflow performance.
+
+define base_block
+  units mm
+  cube
+    width  50
+    depth  50
+    height 5
+  end
+end
+
+define pin_post
+  units mm
+  cylinder
+    radius 2
+    height 15
+  end
+end
+
+assemble heat_sink_pin_array
+  units mm
+  place base_block at origin
+  join  pin_post at (-15, -15, 5)
+  join  pin_post at (-15, 0, 5)
+  join  pin_post at (-15, 15, 5)
+  join  pin_post at (0, -15, 5)
+  join  pin_post at (0, 0, 5)
+  join  pin_post at (0, 15, 5)
+  join  pin_post at (15, -15, 5)
+  join  pin_post at (15, 0, 5)
+  join  pin_post at (15, 15, 5)
+end
+
+export
+  format stl
+  quality medium
+  file output.stl
+end

@@ -1,0 +1,50 @@
+# Example 34: V-Groove Pulley
+# A pulley with a V-shaped torus groove on the rim, a central hub, and a shaft bore.
+# Used to guide a V-belt in mechanical drive systems.
+
+define outer
+  units mm
+  cylinder
+    radius 40
+    height 20
+  end
+end
+
+define groove
+  units mm
+  torus
+    major 40
+    minor 6
+  end
+end
+
+define hub
+  units mm
+  cylinder
+    radius 12
+    height 24
+    move z -2
+  end
+end
+
+define bore
+  units mm
+  cylinder
+    radius 6
+    height 26
+  end
+end
+
+assemble v_groove_pulley
+  units mm
+  place outer at origin
+  cut   groove at origin
+  join  hub at origin
+  cut   bore at origin
+end
+
+export
+  format stl
+  quality medium
+  file output.stl
+end

@@ -1,0 +1,17 @@
+# 18_chamfered_pyramid — Square pyramid with 2 mm chamfer on base edges
+# Compile: polyhedra -c main.polyh -o stl
+
+define chamfered_pyramid
+  units mm
+  pyramid
+    base   20
+    height 28
+  end
+  chamfer 2
+end
+
+export
+  format stl
+  quality medium
+  file   chamfered_pyramid.stl
+end

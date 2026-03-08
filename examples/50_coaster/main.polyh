@@ -1,0 +1,33 @@
+# Example 50: Coaster
+# A circular drink coaster with a shallow top recess to cradle a glass or mug.
+# The recessed top prevents drinks from sliding off the coaster.
+
+define coaster_disc
+  units mm
+  cylinder
+    radius 45
+    height 4
+  end
+end
+
+define top_recess
+  units mm
+  cylinder
+    radius 42
+    height 2
+    move z 2
+  end
+end
+
+assemble coaster
+  units mm
+  place coaster_disc at origin
+  cut   top_recess at origin
+  fillet 2
+end
+
+export
+  format stl
+  quality medium
+  file output.stl
+end

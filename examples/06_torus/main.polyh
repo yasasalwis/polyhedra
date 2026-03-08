@@ -1,0 +1,16 @@
+# 06_torus — Standard torus, major 20 mm, minor 4 mm
+# Compile: polyhedra -c main.polyh -o stl
+
+define torus_basic
+  units mm
+  torus
+    major_radius 20
+    minor_radius  4
+  end
+end
+
+export
+  format stl
+  quality medium
+  file   torus.stl
+end

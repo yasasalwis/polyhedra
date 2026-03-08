@@ -1,0 +1,34 @@
+# 25_bracket_l — L-shaped structural bracket, two perpendicular flanges
+# Compile: polyhedra -c main.polyh -o stl
+
+define horizontal_flange
+  units mm
+  cube
+    width  50
+    depth   6
+    height 20
+  end
+end
+
+define vertical_flange
+  units mm
+  cube
+    width   6
+    depth  40
+    height 20
+    move   x -28
+  end
+end
+
+assemble bracket_l
+  units mm
+  place horizontal_flange at origin
+  join  vertical_flange   at origin
+  fillet 2
+end
+
+export
+  format stl
+  quality medium
+  file   bracket_l.stl
+end

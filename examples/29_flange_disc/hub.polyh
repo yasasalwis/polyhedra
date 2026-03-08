@@ -1,0 +1,9 @@
+# Flange Disc - raised center hub
+
+define hub
+  units mm
+  cylinder
+    radius 15
+    height 14
+  end
+end

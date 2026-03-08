@@ -1,0 +1,10 @@
+# Motor Mount - base plate
+
+define base_plate
+  units mm
+  cube
+    width  80
+    depth  60
+    height 5
+  end
+end

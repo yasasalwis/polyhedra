@@ -1,0 +1,9 @@
+# Mounting Plate - M3 screw hole cutter
+
+define m3_hole
+  units mm
+  cylinder
+    radius 1.6
+    height 6
+  end
+end

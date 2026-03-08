@@ -1,0 +1,10 @@
+# Heat Sink Base - cooling fin
+
+define fin
+  units mm
+  cube
+    width  2
+    depth  40
+    height 20
+  end
+end

@@ -1,0 +1,37 @@
+# Example 38: Heat Sink Base
+# A flat-base heat sink with five vertical cooling fins.
+# Used for passive thermal management of electronics components.
+
+define base
+  units mm
+  cube
+    width  60
+    depth  40
+    height 5
+  end
+end
+
+define fin
+  units mm
+  cube
+    width  2
+    depth  40
+    height 20
+  end
+end
+
+assemble heat_sink_base
+  units mm
+  place base at origin
+  join  fin at (-20, 0, 5)
+  join  fin at (-10, 0, 5)
+  join  fin at (0, 0, 5)
+  join  fin at (10, 0, 5)
+  join  fin at (20, 0, 5)
+end
+
+export
+  format stl
+  quality medium
+  file output.stl
+end

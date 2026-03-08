@@ -1,0 +1,35 @@
+# Example 27: Corner Bracket
+# A 90-degree corner bracket with two perpendicular flat plates.
+# Used for joining panels or structural members at right angles.
+
+define plate_a
+  units mm
+  cube
+    width  40
+    depth  4
+    height 40
+  end
+end
+
+define plate_b
+  units mm
+  cube
+    width  40
+    depth  40
+    height 4
+    move z -18
+  end
+end
+
+assemble corner_bracket
+  units mm
+  place plate_a at origin
+  join  plate_b at origin
+  fillet 2
+end
+
+export
+  format stl
+  quality medium
+  file output.stl
+end

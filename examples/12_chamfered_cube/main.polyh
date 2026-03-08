@@ -1,0 +1,18 @@
+# 12_chamfered_cube — 30 mm cube with 4 mm chamfer on all edges
+# Compile: polyhedra -c main.polyh -o stl
+
+define chamfered_cube
+  units mm
+  cube
+    width  30
+    depth  30
+    height 30
+  end
+  chamfer 4
+end
+
+export
+  format stl
+  quality medium
+  file   chamfered_cube.stl
+end

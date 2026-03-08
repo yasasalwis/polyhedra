@@ -1,0 +1,18 @@
+# 11_rounded_cube — 30 mm cube with 3 mm fillet on all edges
+# Compile: polyhedra -c main.polyh -o stl
+
+define rounded_cube
+  units mm
+  cube
+    width  30
+    depth  30
+    height 30
+  end
+  fillet 3
+end
+
+export
+  format stl
+  quality medium
+  file   rounded_cube.stl
+end

@@ -1,0 +1,32 @@
+# 24_end_cap — Pipe end cap, outer radius 14 mm, inner radius 12 mm, height 8 mm
+# Compile: polyhedra -c main.polyh -o stl
+
+define cap_body
+  units mm
+  cylinder
+    radius 14
+    height  8
+  end
+end
+
+define cap_cavity
+  units mm
+  cylinder
+    radius 12
+    height  6
+    move   z 2
+  end
+end
+
+assemble end_cap
+  units mm
+  place cap_body   at origin
+  cut   cap_cavity at origin
+  fillet 1.5
+end
+
+export
+  format stl
+  quality medium
+  file   end_cap.stl
+end

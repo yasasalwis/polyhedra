@@ -1,0 +1,9 @@
+# Flange Disc - bolt hole cutter
+
+define bolt_hole
+  units mm
+  cylinder
+    radius 4
+    height 10
+  end
+end

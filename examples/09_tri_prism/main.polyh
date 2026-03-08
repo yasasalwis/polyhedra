@@ -1,0 +1,17 @@
+# 09_tri_prism — Equilateral triangular prism, radius 12 mm, height 25 mm
+# Compile: polyhedra -c main.polyh -o stl
+
+define tri_prism
+  units mm
+  prism
+    sides  3
+    radius 12
+    height 25
+  end
+end
+
+export
+  format stl
+  quality medium
+  file   tri_prism.stl
+end

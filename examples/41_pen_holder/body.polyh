@@ -1,0 +1,18 @@
+# Pen Holder - outer body and bore
+
+define body_outer
+  units mm
+  cylinder
+    radius 30
+    height 80
+  end
+end
+
+define body_bore
+  units mm
+  cylinder
+    radius 27
+    height 77
+    move z 3
+  end
+end

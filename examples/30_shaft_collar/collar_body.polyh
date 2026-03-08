@@ -1,0 +1,17 @@
+# Shaft Collar - collar body
+
+define collar_outer
+  units mm
+  cylinder
+    radius 18
+    height 20
+  end
+end
+
+define collar_bore
+  units mm
+  cylinder
+    radius 10
+    height 22
+  end
+end

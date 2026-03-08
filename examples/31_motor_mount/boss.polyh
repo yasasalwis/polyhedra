@@ -1,0 +1,26 @@
+# Motor Mount - motor boss, shaft bore, and M3 holes
+
+define motor_boss
+  units mm
+  cylinder
+    radius 20
+    height 8
+    move z 5
+  end
+end
+
+define shaft_bore
+  units mm
+  cylinder
+    radius 6
+    height 25
+  end
+end
+
+define m3_hole
+  units mm
+  cylinder
+    radius 1.6
+    height 7
+  end
+end

@@ -1,0 +1,42 @@
+# Example 45: Cable Clip
+# A small clip that mounts to a surface and routes a single cable through a groove.
+# The mounting hole accepts a screw for attachment to a wall or desk.
+
+define body
+  units mm
+  cube
+    width  20
+    depth  12
+    height 8
+  end
+end
+
+define cable_groove
+  units mm
+  cylinder
+    radius 4
+    height 22
+  end
+end
+
+define mount_hole
+  units mm
+  cylinder
+    radius 2
+    height 10
+  end
+end
+
+assemble cable_clip
+  units mm
+  place body at origin
+  cut   cable_groove at (0, -2, 0)
+  cut   mount_hole at (0, 4, 0)
+  fillet 1
+end
+
+export
+  format stl
+  quality medium
+  file output.stl
+end

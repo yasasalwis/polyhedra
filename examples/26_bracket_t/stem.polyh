@@ -1,0 +1,12 @@
+# T-Bracket - stem part
+# Vertical bar of the T-bracket
+
+define stem
+  units mm
+  cube
+    width  6
+    depth  6
+    height 40
+    move z 20
+  end
+end

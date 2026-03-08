@@ -1,0 +1,20 @@
+# Picture Frame - cutout shapes
+
+define frame_cutout
+  units mm
+  cube
+    width  140
+    depth  100
+    height 17
+  end
+end
+
+define back_cut
+  units mm
+  cube
+    width  130
+    depth  90
+    height 13
+    move z 1
+  end
+end

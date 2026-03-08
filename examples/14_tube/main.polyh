@@ -1,0 +1,17 @@
+# 14_tube — Hollow cylinder tube, outer radius 10 mm, wall 2 mm, height 40 mm
+# Compile: polyhedra -c main.polyh -o stl
+
+define tube
+  units mm
+  cylinder
+    radius 10
+    height 40
+  end
+  shell 2
+end
+
+export
+  format stl
+  quality medium
+  file   tube.stl
+end
