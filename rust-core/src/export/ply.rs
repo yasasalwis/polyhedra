@@ -27,15 +27,15 @@ use std::io::Write;
 
 use glam::Vec3;
 
-use crate::mesher::Mesh;
 use crate::error::Result;
+use crate::mesher::Mesh;
 
 use super::compute_vertex_normals;
 
 /// Serialize `mesh` to binary PLY bytes.
 pub fn to_bytes(mesh: &Mesh) -> Result<Vec<u8>> {
-    let nv    = mesh.vertex_count();
-    let nf    = mesh.triangle_count();
+    let nv = mesh.vertex_count();
+    let nf = mesh.triangle_count();
     let normals = compute_vertex_normals(&mesh.vertices, &mesh.triangles);
 
     // ── ASCII header ──────────────────────────────────────────────────────────

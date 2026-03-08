@@ -30,7 +30,10 @@ pub struct Qef {
 
 impl Qef {
     pub fn new() -> Self {
-        Self { ata: [[0.0; 3]; 3], atb: [0.0; 3] }
+        Self {
+            ata: [[0.0; 3]; 3],
+            atb: [0.0; 3],
+        }
     }
 
     /// Add one edge-crossing constraint: surface point `p` with outward normal `n`.
@@ -53,7 +56,11 @@ impl Qef {
     ///
     /// Falls back to `cell_center` if the system is (near-)singular.
     pub fn solve(&self, cell_center: Vec3, lambda: f64) -> Vec3 {
-        let c = [cell_center.x as f64, cell_center.y as f64, cell_center.z as f64];
+        let c = [
+            cell_center.x as f64,
+            cell_center.y as f64,
+            cell_center.z as f64,
+        ];
         let mut m = self.ata;
         let mut rhs = self.atb;
         for i in 0..3 {
@@ -80,9 +87,7 @@ fn solve3(m: [[f64; 3]; 3], b: [f64; 3]) -> Option<[f64; 3]> {
     for col in 0..3 {
         // Partial pivot: find row with largest absolute value in this column.
         let pivot_row = (col..3)
-            .max_by(|&r1, &r2| {
-                a[r1][col].abs().partial_cmp(&a[r2][col].abs()).unwrap()
-            })
+            .max_by(|&r1, &r2| a[r1][col].abs().partial_cmp(&a[r2][col].abs()).unwrap())
             .unwrap();
         a.swap(col, pivot_row);
 

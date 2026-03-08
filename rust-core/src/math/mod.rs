@@ -10,14 +10,17 @@ pub use glam::{Mat4, Quat, Vec2, Vec3, Vec4};
 /// A ray with an origin and a normalised direction.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Ray {
-    pub origin:    Vec3,
+    pub origin: Vec3,
     pub direction: Vec3, // must be normalised
 }
 
 impl Ray {
     #[inline]
     pub fn new(origin: Vec3, direction: Vec3) -> Self {
-        Self { origin, direction: direction.normalize() }
+        Self {
+            origin,
+            direction: direction.normalize(),
+        }
     }
 
     /// Point on the ray at parameter `t`.
@@ -32,28 +35,40 @@ impl Ray {
 /// A rigid-body + scale transform stored as a 4×4 matrix.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Transform {
-    pub matrix:  Mat4,
+    pub matrix: Mat4,
     pub inverse: Mat4,
 }
 
 impl Transform {
     pub fn identity() -> Self {
-        Self { matrix: Mat4::IDENTITY, inverse: Mat4::IDENTITY }
+        Self {
+            matrix: Mat4::IDENTITY,
+            inverse: Mat4::IDENTITY,
+        }
     }
 
     pub fn from_translation(t: Vec3) -> Self {
         let m = Mat4::from_translation(t);
-        Self { matrix: m, inverse: m.inverse() }
+        Self {
+            matrix: m,
+            inverse: m.inverse(),
+        }
     }
 
     pub fn from_rotation(q: Quat) -> Self {
         let m = Mat4::from_quat(q);
-        Self { matrix: m, inverse: m.inverse() }
+        Self {
+            matrix: m,
+            inverse: m.inverse(),
+        }
     }
 
     pub fn from_scale(s: Vec3) -> Self {
         let m = Mat4::from_scale(s);
-        Self { matrix: m, inverse: m.inverse() }
+        Self {
+            matrix: m,
+            inverse: m.inverse(),
+        }
     }
 
     /// Apply this transform to a world-space point (forward).

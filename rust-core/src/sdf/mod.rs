@@ -48,7 +48,7 @@ use crate::math::Transform;
 /// An SDF node with an applied spatial transform.
 /// Transforms a world-space query point into local space before evaluating.
 pub struct TransformedSdf {
-    pub inner:     SdfNode,
+    pub inner: SdfNode,
     pub transform: Transform,
 }
 

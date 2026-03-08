@@ -186,7 +186,10 @@ mod tests {
         let b = 0.0_f32;
         // When both are 0 (on the surface), smooth_min with k should give -(k/4)
         let result = smooth_min(a, b, 4.0);
-        assert!(result < 0.0, "smooth_min at equal surfaces should dip below zero");
+        assert!(
+            result < 0.0,
+            "smooth_min at equal surfaces should dip below zero"
+        );
     }
 
     #[test]

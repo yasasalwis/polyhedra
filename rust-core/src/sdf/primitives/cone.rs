@@ -21,8 +21,8 @@ use crate::sdf::Sdf;
 /// Setting `top_radius = 0.0` gives a standard pointed cone.
 /// Setting `base_radius == top_radius` gives a cylinder (use `CylinderSdf` for that).
 pub struct ConeSdf {
-    base_radius: f32,   // radius at z = -half_height
-    top_radius:  f32,   // radius at z = +half_height
+    base_radius: f32, // radius at z = -half_height
+    top_radius: f32,  // radius at z = +half_height
     half_height: f32,
 }
 
@@ -52,9 +52,9 @@ impl Sdf for ConeSdf {
     /// - Frustums       (`top_radius > 0`)
     /// - Inverted cones (`top_radius > base_radius`)
     fn distance(&self, p: Vec3) -> f32 {
-        let h  = self.half_height;
-        let r1 = self.base_radius;   // at z = -h
-        let r2 = self.top_radius;    // at z = +h
+        let h = self.half_height;
+        let r1 = self.base_radius; // at z = -h
+        let r2 = self.top_radius; // at z = +h
 
         // Collapse to 2-D: (radial distance from Z axis, z coordinate).
         let q = Vec2::new(Vec2::new(p.x, p.y).length(), p.z);
@@ -70,11 +70,15 @@ impl Sdf for ConeSdf {
         );
 
         // Distance to the slant edge (clamped projection).
-        let t  = ((k1 - q).dot(k2) / k2.dot(k2)).clamp(0.0, 1.0);
+        let t = ((k1 - q).dot(k2) / k2.dot(k2)).clamp(0.0, 1.0);
         let cb = q - k1 + k2 * t;
 
         // Sign: negative (inside) when both ca and cb say "inside".
-        let s = if cb.x < 0.0 && ca.y < 0.0 { -1.0_f32 } else { 1.0_f32 };
+        let s = if cb.x < 0.0 && ca.y < 0.0 {
+            -1.0_f32
+        } else {
+            1.0_f32
+        };
 
         s * ca.dot(ca).min(cb.dot(cb)).sqrt()
     }
@@ -91,10 +95,14 @@ mod tests {
     use approx::assert_abs_diff_eq;
 
     // ── Pointed cone: base_radius=5, top_radius=0, height=10 ──────────────
-    fn pointed() -> ConeSdf { ConeSdf::new(5.0, 0.0, 10.0) }
+    fn pointed() -> ConeSdf {
+        ConeSdf::new(5.0, 0.0, 10.0)
+    }
 
     // ── Frustum: base_radius=6, top_radius=3, height=10 ───────────────────
-    fn frustum() -> ConeSdf { ConeSdf::new(6.0, 3.0, 10.0) }
+    fn frustum() -> ConeSdf {
+        ConeSdf::new(6.0, 3.0, 10.0)
+    }
 
     // ── Interior ──────────────────────────────────────────────────────────
 
@@ -164,23 +172,39 @@ mod tests {
     #[test]
     fn pointed_outside_axially_above_tip() {
         // 3 mm above the tip (z = 5 + 3 = 8), on axis.
-        assert_abs_diff_eq!(pointed().distance(Vec3::new(0.0, 0.0, 8.0)), 3.0, epsilon = 1e-4);
+        assert_abs_diff_eq!(
+            pointed().distance(Vec3::new(0.0, 0.0, 8.0)),
+            3.0,
+            epsilon = 1e-4
+        );
     }
 
     #[test]
     fn pointed_outside_below_base() {
         // 4 mm below the base (z = -5 - 4 = -9), on axis.
-        assert_abs_diff_eq!(pointed().distance(Vec3::new(0.0, 0.0, -9.0)), 4.0, epsilon = 1e-4);
+        assert_abs_diff_eq!(
+            pointed().distance(Vec3::new(0.0, 0.0, -9.0)),
+            4.0,
+            epsilon = 1e-4
+        );
     }
 
     #[test]
     fn frustum_outside_above_top() {
-        assert_abs_diff_eq!(frustum().distance(Vec3::new(0.0, 0.0, 8.0)), 3.0, epsilon = 1e-4);
+        assert_abs_diff_eq!(
+            frustum().distance(Vec3::new(0.0, 0.0, 8.0)),
+            3.0,
+            epsilon = 1e-4
+        );
     }
 
     #[test]
     fn frustum_outside_below_base() {
-        assert_abs_diff_eq!(frustum().distance(Vec3::new(0.0, 0.0, -8.0)), 3.0, epsilon = 1e-4);
+        assert_abs_diff_eq!(
+            frustum().distance(Vec3::new(0.0, 0.0, -8.0)),
+            3.0,
+            epsilon = 1e-4
+        );
     }
 
     // ── Dimensions ────────────────────────────────────────────────────────
@@ -189,8 +213,8 @@ mod tests {
     fn dimensions_round_trip() {
         let c = ConeSdf::new(8.0, 3.0, 20.0);
         let (b, t, h) = c.dimensions();
-        assert_abs_diff_eq!(b, 8.0,  epsilon = 1e-5);
-        assert_abs_diff_eq!(t, 3.0,  epsilon = 1e-5);
+        assert_abs_diff_eq!(b, 8.0, epsilon = 1e-5);
+        assert_abs_diff_eq!(t, 3.0, epsilon = 1e-5);
         assert_abs_diff_eq!(h, 20.0, epsilon = 1e-5);
     }
 

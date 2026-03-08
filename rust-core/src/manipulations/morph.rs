@@ -38,7 +38,7 @@ use crate::sdf::{Sdf, SdfNode};
 /// offset_sdf(p) = inner(p) − offset
 /// ```
 pub struct OffsetNode {
-    pub inner:  SdfNode,
+    pub inner: SdfNode,
     /// Signed offset in model units (mm).  Positive = grow, negative = shrink.
     pub offset: f32,
 }
@@ -61,7 +61,7 @@ impl Sdf for OffsetNode {
 /// shell_sdf(p) = |inner(p)| − thickness
 /// ```
 pub struct ShellNode {
-    pub inner:     SdfNode,
+    pub inner: SdfNode,
     /// Wall thickness in model units.
     pub thickness: f32,
 }
@@ -89,7 +89,7 @@ impl Sdf for ShellNode {
 /// The clamping pushes the query point into the nearest end-cap region,
 /// effectively inserting a straight "tube" of the requested extra length.
 pub struct ElongateNode {
-    pub inner:   SdfNode,
+    pub inner: SdfNode,
     /// Per-axis elongation in model units.  Zero on an axis = no elongation.
     pub amounts: Vec3,
 }
@@ -110,15 +110,22 @@ mod tests {
     use crate::sdf::primitives::{CubeSdf, SphereSdf};
     use approx::assert_abs_diff_eq;
 
-    fn sphere5() -> SdfNode { Box::new(SphereSdf::new(5.0)) }
-    fn cube10() -> SdfNode  { Box::new(CubeSdf::new(10.0, 10.0, 10.0)) }
+    fn sphere5() -> SdfNode {
+        Box::new(SphereSdf::new(5.0))
+    }
+    fn cube10() -> SdfNode {
+        Box::new(CubeSdf::new(10.0, 10.0, 10.0))
+    }
 
     // ── OffsetNode ─────────────────────────────────────────────────────────
 
     #[test]
     fn offset_positive_expands_sphere() {
         // Sphere r=5, offset +2 → effective r=7.
-        let sdf = OffsetNode { inner: sphere5(), offset: 2.0 };
+        let sdf = OffsetNode {
+            inner: sphere5(),
+            offset: 2.0,
+        };
         // Point at distance 6 from origin: inside original sphere boundary
         // but still inside expanded one? No, r=7, p=6 → inside. d = 6 - 7 = -1.
         assert_abs_diff_eq!(sdf.distance(Vec3::new(6.0, 0.0, 0.0)), -1.0, epsilon = 1e-4);
@@ -127,7 +134,10 @@ mod tests {
     #[test]
     fn offset_negative_shrinks_sphere() {
         // Sphere r=5, offset -2 → effective r=3.
-        let sdf = OffsetNode { inner: sphere5(), offset: -2.0 };
+        let sdf = OffsetNode {
+            inner: sphere5(),
+            offset: -2.0,
+        };
         // Point at r=4: outside shrunk sphere (r=3). d = 4 - 3 = 1.
         assert_abs_diff_eq!(sdf.distance(Vec3::new(4.0, 0.0, 0.0)), 1.0, epsilon = 1e-4);
     }
@@ -135,7 +145,10 @@ mod tests {
     #[test]
     fn offset_surface_shifted_outward() {
         // After +2 offset, surface of sphere is at r=7.
-        let sdf = OffsetNode { inner: sphere5(), offset: 2.0 };
+        let sdf = OffsetNode {
+            inner: sphere5(),
+            offset: 2.0,
+        };
         assert_abs_diff_eq!(sdf.distance(Vec3::new(7.0, 0.0, 0.0)), 0.0, epsilon = 1e-4);
     }
 
@@ -144,13 +157,16 @@ mod tests {
         // A cube with positive offset should have corners further from the
         // un-offset surface (the offset "inflates" the shape).
         let raw = CubeSdf::new(10.0, 10.0, 10.0);
-        let rounded = OffsetNode { inner: cube10(), offset: 1.0 };
+        let rounded = OffsetNode {
+            inner: cube10(),
+            offset: 1.0,
+        };
 
         // Corner of original cube at (5,5,5): raw SDF = 0 (on surface).
         // Rounded SDF at same point = 0 - 1.0 = -1.0 (inside rounded shape).
-        let raw_d     = raw.distance(Vec3::new(5.0, 5.0, 5.0));
+        let raw_d = raw.distance(Vec3::new(5.0, 5.0, 5.0));
         let rounded_d = rounded.distance(Vec3::new(5.0, 5.0, 5.0));
-        assert_abs_diff_eq!(raw_d,     0.0,  epsilon = 1e-4);
+        assert_abs_diff_eq!(raw_d, 0.0, epsilon = 1e-4);
         assert_abs_diff_eq!(rounded_d, -1.0, epsilon = 1e-4);
     }
 
@@ -163,7 +179,10 @@ mod tests {
         // wall is where |sdf| = thickness, i.e. sdf = ±thickness.
         // Actually surface of shell sdf = 0 where |inner_sdf| = thickness.
         // inner_sdf at r=4: d = 4-5 = -1.  |d|=1, shell_d = 1-1 = 0. ✓
-        let sdf = ShellNode { inner: sphere5(), thickness: 1.0 };
+        let sdf = ShellNode {
+            inner: sphere5(),
+            thickness: 1.0,
+        };
         assert_abs_diff_eq!(sdf.distance(Vec3::new(4.0, 0.0, 0.0)), 0.0, epsilon = 1e-4);
         // Also at r=6: d = 6-5 = 1. |d|=1, shell_d = 0. ✓
         assert_abs_diff_eq!(sdf.distance(Vec3::new(6.0, 0.0, 0.0)), 0.0, epsilon = 1e-4);
@@ -172,21 +191,30 @@ mod tests {
     #[test]
     fn shell_midpoint_is_most_negative() {
         // At r=5 (original surface), |sdf| = 0, shell_d = -thickness = -1.
-        let sdf = ShellNode { inner: sphere5(), thickness: 1.0 };
+        let sdf = ShellNode {
+            inner: sphere5(),
+            thickness: 1.0,
+        };
         assert_abs_diff_eq!(sdf.distance(Vec3::new(5.0, 0.0, 0.0)), -1.0, epsilon = 1e-4);
     }
 
     #[test]
     fn shell_interior_is_positive() {
         // Deep inside the sphere (r=0), sdf=-5, |sdf|=5, shell_d = 5-1 = 4 > 0.
-        let sdf = ShellNode { inner: sphere5(), thickness: 1.0 };
+        let sdf = ShellNode {
+            inner: sphere5(),
+            thickness: 1.0,
+        };
         assert!(sdf.distance(Vec3::ZERO) > 0.0);
     }
 
     #[test]
     fn shell_exterior_is_positive_beyond_thickness() {
         // At r=7: sdf=2, |sdf|=2, shell_d = 2-1 = 1 > 0.
-        let sdf = ShellNode { inner: sphere5(), thickness: 1.0 };
+        let sdf = ShellNode {
+            inner: sphere5(),
+            thickness: 1.0,
+        };
         assert!(sdf.distance(Vec3::new(7.0, 0.0, 0.0)) > 0.0);
     }
 
@@ -198,7 +226,7 @@ mod tests {
         // Point at (5,0,0): q = (5 - clamp(5,-3,3), 0, 0) = (5-3, 0, 0) = (2,0,0).
         // inner.distance((2,0,0)) = 2-2 = 0. On surface ✓
         let sdf = ElongateNode {
-            inner:   Box::new(SphereSdf::new(2.0)),
+            inner: Box::new(SphereSdf::new(2.0)),
             amounts: Vec3::new(3.0, 0.0, 0.0),
         };
         assert_abs_diff_eq!(sdf.distance(Vec3::new(5.0, 0.0, 0.0)), 0.0, epsilon = 1e-4);
@@ -208,7 +236,7 @@ mod tests {
     fn elongate_zero_is_identity() {
         // No elongation → same as original sphere.
         let sdf = ElongateNode {
-            inner:   sphere5(),
+            inner: sphere5(),
             amounts: Vec3::ZERO,
         };
         assert_abs_diff_eq!(sdf.distance(Vec3::ZERO), -5.0, epsilon = 1e-4);
@@ -219,7 +247,7 @@ mod tests {
     fn elongate_inside_the_tube_is_negative() {
         // Elongate sphere r=2 by 10 along X. Origin should be inside.
         let sdf = ElongateNode {
-            inner:   Box::new(SphereSdf::new(2.0)),
+            inner: Box::new(SphereSdf::new(2.0)),
             amounts: Vec3::new(10.0, 0.0, 0.0),
         };
         assert!(sdf.distance(Vec3::ZERO) < 0.0);

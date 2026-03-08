@@ -1,12 +1,14 @@
 //! Integration tests for TorusSdf.
 
-use approx::assert_abs_diff_eq;
-use _core::sdf::primitives::TorusSdf;
 use _core::sdf::Sdf;
+use _core::sdf::primitives::TorusSdf;
+use approx::assert_abs_diff_eq;
 use glam::Vec3;
 
 /// R=5, r=2.
-fn torus() -> TorusSdf { TorusSdf::new(5.0, 2.0) }
+fn torus() -> TorusSdf {
+    TorusSdf::new(5.0, 2.0)
+}
 
 // ── Interior / exterior ───────────────────────────────────────────────────
 
@@ -18,24 +20,40 @@ fn origin_in_hole_is_outside() {
 
 #[test]
 fn tube_centre_is_inside() {
-    assert_abs_diff_eq!(torus().distance(Vec3::new(5.0, 0.0, 0.0)), -2.0, epsilon = 1e-5);
+    assert_abs_diff_eq!(
+        torus().distance(Vec3::new(5.0, 0.0, 0.0)),
+        -2.0,
+        epsilon = 1e-5
+    );
 }
 
 // ── Surface ───────────────────────────────────────────────────────────────
 
 #[test]
 fn outer_surface_zero() {
-    assert_abs_diff_eq!(torus().distance(Vec3::new(7.0, 0.0, 0.0)), 0.0, epsilon = 1e-5);
+    assert_abs_diff_eq!(
+        torus().distance(Vec3::new(7.0, 0.0, 0.0)),
+        0.0,
+        epsilon = 1e-5
+    );
 }
 
 #[test]
 fn inner_surface_zero() {
-    assert_abs_diff_eq!(torus().distance(Vec3::new(3.0, 0.0, 0.0)), 0.0, epsilon = 1e-5);
+    assert_abs_diff_eq!(
+        torus().distance(Vec3::new(3.0, 0.0, 0.0)),
+        0.0,
+        epsilon = 1e-5
+    );
 }
 
 #[test]
 fn top_of_tube_zero() {
-    assert_abs_diff_eq!(torus().distance(Vec3::new(5.0, 0.0, 2.0)), 0.0, epsilon = 1e-5);
+    assert_abs_diff_eq!(
+        torus().distance(Vec3::new(5.0, 0.0, 2.0)),
+        0.0,
+        epsilon = 1e-5
+    );
 }
 
 #[test]
@@ -53,12 +71,20 @@ fn surface_rotationally_symmetric() {
 
 #[test]
 fn above_tube_distance() {
-    assert_abs_diff_eq!(torus().distance(Vec3::new(5.0, 0.0, 5.0)), 3.0, epsilon = 1e-5);
+    assert_abs_diff_eq!(
+        torus().distance(Vec3::new(5.0, 0.0, 5.0)),
+        3.0,
+        epsilon = 1e-5
+    );
 }
 
 #[test]
 fn past_outer_rim_distance() {
-    assert_abs_diff_eq!(torus().distance(Vec3::new(9.0, 0.0, 0.0)), 2.0, epsilon = 1e-5);
+    assert_abs_diff_eq!(
+        torus().distance(Vec3::new(9.0, 0.0, 0.0)),
+        2.0,
+        epsilon = 1e-5
+    );
 }
 
 // ── Shape-type mapping ────────────────────────────────────────────────────
@@ -83,18 +109,21 @@ fn torus_as_sdf_node() {
 
 #[test]
 fn torus_half_via_intersection() {
+    use _core::sdf::SdfNode;
     use _core::sdf::operations::IntersectionNode;
     use _core::sdf::primitives::CubeSdf;
-    use _core::sdf::SdfNode;
 
     // Keep only the +X half of the torus.
     let torus: SdfNode = Box::new(TorusSdf::new(5.0, 2.0));
     // A wide box covering only x >= 0 — translated +5 on X so it starts at x=0.
     let half_space: SdfNode = Box::new(_core::sdf::transform::Translate {
-        inner:  Box::new(CubeSdf::new(20.0, 20.0, 20.0)),
+        inner: Box::new(CubeSdf::new(20.0, 20.0, 20.0)),
         offset: glam::Vec3::new(10.0, 0.0, 0.0),
     });
-    let half_torus: SdfNode = Box::new(IntersectionNode { a: torus, b: half_space });
+    let half_torus: SdfNode = Box::new(IntersectionNode {
+        a: torus,
+        b: half_space,
+    });
 
     // Tube centre in +X half → inside half-torus.
     assert!(half_torus.distance(Vec3::new(5.0, 0.0, 0.0)) < 0.0);
@@ -106,9 +135,9 @@ fn torus_half_via_intersection() {
 
 #[test]
 fn torus_smooth_union_with_sphere() {
+    use _core::sdf::SdfNode;
     use _core::sdf::operations::SmoothUnionNode;
     use _core::sdf::primitives::SphereSdf;
-    use _core::sdf::SdfNode;
 
     let t: SdfNode = Box::new(TorusSdf::new(5.0, 1.5));
     let s: SdfNode = Box::new(SphereSdf::new(3.0));

@@ -20,9 +20,9 @@ use std::time::Instant;
 use clap::{Parser, ValueEnum};
 use notify::{Event, RecursiveMode, Watcher};
 
-use _core::export::{to_file, ExportFormat};
-use _core::mesher::{mesh, MeshConfig};
-use _core::parser::{parse_file, eval};
+use _core::export::{ExportFormat, to_file};
+use _core::mesher::{MeshConfig, mesh};
+use _core::parser::{eval, parse_file};
 
 // ── CLI argument definition ────────────────────────────────────────────────────
 
@@ -97,10 +97,10 @@ enum Quality {
 impl Quality {
     fn resolution(&self) -> u32 {
         match self {
-            Quality::Low    => 16,
+            Quality::Low => 16,
             Quality::Medium => 32,
-            Quality::High   => 64,
-            Quality::Ultra  => 128,
+            Quality::High => 64,
+            Quality::Ultra => 128,
         }
     }
 }
@@ -148,18 +148,35 @@ fn run_compile(file: &Path, cli: &Cli) -> std::result::Result<(), Box<dyn std::e
 
     println!("polyhedra v{}", env!("CARGO_PKG_VERSION"));
     println!("  input   : {}", file.display());
-    println!("  output  : {}", formats.iter().map(|f| f.extension()).collect::<Vec<_>>().join(", "));
-    println!("  quality : {:?} ({}vox)", cli.quality, cli.quality.resolution());
+    println!(
+        "  output  : {}",
+        formats
+            .iter()
+            .map(|f| f.extension())
+            .collect::<Vec<_>>()
+            .join(", ")
+    );
+    println!(
+        "  quality : {:?} ({}vox)",
+        cli.quality,
+        cli.quality.resolution()
+    );
     println!("  dir     : {}", out_dir.display());
     println!();
 
-    compile_once(file, &formats, &out_dir, cli.quality.resolution(), cli.stats)
+    compile_once(
+        file,
+        &formats,
+        &out_dir,
+        cli.quality.resolution(),
+        cli.stats,
+    )
 }
 
 fn compile_once(
-    file:       &Path,
-    formats:    &[ExportFormat],
-    out_dir:    &Path,
+    file: &Path,
+    formats: &[ExportFormat],
+    out_dir: &Path,
     resolution: u32,
     print_stats: bool,
 ) -> std::result::Result<(), Box<dyn std::error::Error>> {
@@ -178,22 +195,28 @@ fn compile_once(
         let asm = polyh.assemblies().next().unwrap();
         eval::eval_assemble(asm, &defines, 1.0)?
     } else {
-        let def = polyh.defines().next().ok_or(
-            "file has no 'define' or 'assemble' block"
-        )?;
+        let def = polyh
+            .defines()
+            .next()
+            .ok_or("file has no 'define' or 'assemble' block")?;
         eval::eval_define(def, 1.0)?
     };
     println!("ok  (bounds ≈ {bounds:.1} mm)");
 
     // ── Mesh ──────────────────────────────────────────────────────────────────
-    print!("  meshing  ({}vox, bounds {:.0}mm) … ", resolution, bounds * 1.1);
-    let cfg  = MeshConfig::centered(bounds * 1.1, resolution);
-    let m    = mesh(sdf_node.as_ref(), &cfg);
+    print!(
+        "  meshing  ({}vox, bounds {:.0}mm) … ",
+        resolution,
+        bounds * 1.1
+    );
+    let cfg = MeshConfig::centered(bounds * 1.1, resolution);
+    let m = mesh(sdf_node.as_ref(), &cfg);
     println!("{} triangles", m.triangle_count());
 
     if m.triangle_count() == 0 {
         return Err("mesh is empty — try increasing quality or check that the \
-                    geometry fits within the bounds".into());
+                    geometry fits within the bounds"
+            .into());
     }
 
     // ── Export ────────────────────────────────────────────────────────────────
@@ -233,7 +256,10 @@ fn run_validate(file: &Path) -> std::result::Result<(), Box<dyn std::error::Erro
             println!("ok");
             println!("  define blocks  : {n_defs}");
             println!("  assemble blocks: {n_asms}");
-            println!("  export block   : {}", if has_export { "yes" } else { "no" });
+            println!(
+                "  export block   : {}",
+                if has_export { "yes" } else { "no" }
+            );
             println!();
             println!("  ✓ Syntax valid");
             Ok(())
@@ -252,23 +278,33 @@ fn run_list(file: &Path) -> std::result::Result<(), Box<dyn std::error::Error>> 
     println!("Objects defined in {}:", file.display());
     let mut count = 0;
     for def in polyh.defines() {
-        let prim_count = def.items.iter()
+        let prim_count = def
+            .items
+            .iter()
             .filter(|i| matches!(i, _core::parser::ast::DefineItem::Primitive(_)))
             .count();
-        let has_manip  = def.items.iter()
+        let has_manip = def
+            .items
+            .iter()
             .any(|i| matches!(i, _core::parser::ast::DefineItem::Manip(_)));
         print!("  define {}", def.name);
         if prim_count > 0 {
             print!("  ({prim_count} primitive");
-            if prim_count != 1 { print!("s"); }
+            if prim_count != 1 {
+                print!("s");
+            }
             print!(")");
         }
-        if has_manip { print!("  [manipulations]"); }
+        if has_manip {
+            print!("  [manipulations]");
+        }
         println!();
         count += 1;
     }
     for asm in polyh.assemblies() {
-        let n_ops = asm.items.iter()
+        let n_ops = asm
+            .items
+            .iter()
             .filter(|i| matches!(i, _core::parser::ast::AssembleItem::Op(_)))
             .count();
         println!("  assemble {}  ({n_ops} operations)", asm.name);
@@ -283,13 +319,16 @@ fn run_list(file: &Path) -> std::result::Result<(), Box<dyn std::error::Error>> 
 // ── Watch ──────────────────────────────────────────────────────────────────────
 
 fn run_watch(file: &Path, cli: &Cli) -> std::result::Result<(), Box<dyn std::error::Error>> {
-    let formats  = resolve_formats(cli.output.as_deref().unwrap_or("stl"))?;
-    let out_dir  = resolve_output_dir(cli.dir.as_deref(), file);
-    let res      = cli.quality.resolution();
+    let formats = resolve_formats(cli.output.as_deref().unwrap_or("stl"))?;
+    let out_dir = resolve_output_dir(cli.dir.as_deref(), file);
+    let res = cli.quality.resolution();
     let abs_file = file.canonicalize()?;
     let watch_dir = abs_file.parent().unwrap_or(Path::new(".")).to_path_buf();
 
-    println!("polyhedra watch — watching {} for changes (Ctrl+C to stop)", watch_dir.display());
+    println!(
+        "polyhedra watch — watching {} for changes (Ctrl+C to stop)",
+        watch_dir.display()
+    );
     println!();
 
     // Run once immediately.
@@ -306,9 +345,10 @@ fn run_watch(file: &Path, cli: &Cli) -> std::result::Result<(), Box<dyn std::err
         match event {
             Ok(evt) => {
                 // Filter to .polyh files; debounce to 200ms.
-                let is_polyh = evt.paths.iter().any(|p| {
-                    p.extension().map(|e| e == "polyh").unwrap_or(false)
-                });
+                let is_polyh = evt
+                    .paths
+                    .iter()
+                    .any(|p| p.extension().map(|e| e == "polyh").unwrap_or(false));
                 if is_polyh && last_event.elapsed().as_millis() > 200 {
                     last_event = Instant::now();
                     println!("--- change detected — recompiling ---");
@@ -324,7 +364,9 @@ fn run_watch(file: &Path, cli: &Cli) -> std::result::Result<(), Box<dyn std::err
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-fn resolve_formats(spec: &str) -> std::result::Result<Vec<ExportFormat>, Box<dyn std::error::Error>> {
+fn resolve_formats(
+    spec: &str,
+) -> std::result::Result<Vec<ExportFormat>, Box<dyn std::error::Error>> {
     const ALL: &[ExportFormat] = &[
         ExportFormat::Stl,
         ExportFormat::Obj,
@@ -334,14 +376,19 @@ fn resolve_formats(spec: &str) -> std::result::Result<Vec<ExportFormat>, Box<dyn
     if spec.eq_ignore_ascii_case("all") {
         return Ok(ALL.to_vec());
     }
-    let mut seen  = HashSet::new();
-    let mut fmts  = Vec::new();
+    let mut seen = HashSet::new();
+    let mut fmts = Vec::new();
     for part in spec.split(',') {
         let s = part.trim();
-        if s.is_empty() { continue; }
-        let fmt: ExportFormat = s.parse()
+        if s.is_empty() {
+            continue;
+        }
+        let fmt: ExportFormat = s
+            .parse()
             .map_err(|_| format!("unknown format '{s}'. Valid: stl, obj, glb, ply, all"))?;
-        if seen.insert(fmt) { fmts.push(fmt); }
+        if seen.insert(fmt) {
+            fmts.push(fmt);
+        }
     }
     if fmts.is_empty() {
         return Err("no output formats specified".into());
@@ -351,6 +398,9 @@ fn resolve_formats(spec: &str) -> std::result::Result<Vec<ExportFormat>, Box<dyn
 
 fn resolve_output_dir(dir: Option<&Path>, input: &Path) -> PathBuf {
     dir.map(PathBuf::from).unwrap_or_else(|| {
-        input.parent().map(PathBuf::from).unwrap_or_else(|| PathBuf::from("."))
+        input
+            .parent()
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("."))
     })
 }

@@ -60,11 +60,13 @@ impl FromStr for ExportFormat {
 
     fn from_str(s: &str) -> Result<Self> {
         match s.to_ascii_lowercase().as_str() {
-            "stl"  => Ok(Self::Stl),
-            "obj"  => Ok(Self::Obj),
-            "ply"  => Ok(Self::Ply),
+            "stl" => Ok(Self::Stl),
+            "obj" => Ok(Self::Obj),
+            "ply" => Ok(Self::Ply),
             "glb" | "gltf" => Ok(Self::Glb),
-            other  => Err(PolyhedraError::UnknownFormat { format: other.into() }),
+            other => Err(PolyhedraError::UnknownFormat {
+                format: other.into(),
+            }),
         }
     }
 }
@@ -91,7 +93,7 @@ pub fn to_bytes(mesh: &Mesh, fmt: ExportFormat) -> Result<Vec<u8>> {
 /// Creates (or overwrites) the file at `path`.
 pub fn to_file(mesh: &Mesh, path: impl AsRef<Path>) -> Result<()> {
     let path = path.as_ref();
-    let fmt  = ExportFormat::from_path(path).ok_or_else(|| {
+    let fmt = ExportFormat::from_path(path).ok_or_else(|| {
         let ext = path
             .extension()
             .and_then(|e| e.to_str())
@@ -108,10 +110,7 @@ pub fn to_file(mesh: &Mesh, path: impl AsRef<Path>) -> Result<()> {
 
 /// Compute per-vertex normals by area-weighted averaging of adjacent face
 /// normals.  Vertices with no adjacent faces get a zero normal.
-pub(crate) fn compute_vertex_normals(
-    vertices:  &[Vec3],
-    triangles: &[[u32; 3]],
-) -> Vec<Vec3> {
+pub(crate) fn compute_vertex_normals(vertices: &[Vec3], triangles: &[[u32; 3]]) -> Vec<Vec3> {
     let mut normals = vec![Vec3::ZERO; vertices.len()];
     for &[a, b, c] in triangles {
         let va = vertices[a as usize];

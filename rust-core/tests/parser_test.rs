@@ -3,8 +3,8 @@
 //! Tests cover all grammar constructs without requiring file I/O — each test
 //! feeds a raw `&str` to `parse_str` and inspects the resulting AST.
 
-use _core::parser::parse_str;
 use _core::parser::ast::*;
+use _core::parser::parse_str;
 
 // ── Trivial ────────────────────────────────────────────────────────────────────
 
@@ -55,9 +55,27 @@ end
     if let DefineItem::Primitive(p) = &def.items[0] {
         assert_eq!(p.kind, PrimKind::Cube);
         assert_eq!(p.props.len(), 3);
-        assert_eq!(p.props[0], Prop { key: "width".into(),  value: 10.0 });
-        assert_eq!(p.props[1], Prop { key: "depth".into(),  value: 5.0 });
-        assert_eq!(p.props[2], Prop { key: "height".into(), value: 3.0 });
+        assert_eq!(
+            p.props[0],
+            Prop {
+                key: "width".into(),
+                value: 10.0
+            }
+        );
+        assert_eq!(
+            p.props[1],
+            Prop {
+                key: "depth".into(),
+                value: 5.0
+            }
+        );
+        assert_eq!(
+            p.props[2],
+            Prop {
+                key: "height".into(),
+                value: 3.0
+            }
+        );
     } else {
         panic!("expected Primitive item");
     }
@@ -76,7 +94,7 @@ end
     let f = parse_str(src).unwrap();
     let def = f.defines().next().unwrap();
     if let DefineItem::Primitive(p) = &def.items[0] {
-        assert_eq!(p.kind,  PrimKind::Sphere);
+        assert_eq!(p.kind, PrimKind::Sphere);
         assert_eq!(p.units, Some(Unit::Mm));
         assert_eq!(p.props[0].value, 7.5);
     } else {
@@ -92,7 +110,9 @@ fn define_cylinder() {
     if let DefineItem::Primitive(p) = &def.items[0] {
         assert_eq!(p.kind, PrimKind::Cylinder);
         assert_eq!(p.props.len(), 2);
-    } else { panic!() }
+    } else {
+        panic!()
+    }
 }
 
 #[test]
@@ -102,7 +122,9 @@ fn define_cone() {
     let def = f.defines().next().unwrap();
     if let DefineItem::Primitive(p) = &def.items[0] {
         assert_eq!(p.kind, PrimKind::Cone);
-    } else { panic!() }
+    } else {
+        panic!()
+    }
 }
 
 #[test]
@@ -113,7 +135,9 @@ fn define_torus() {
     if let DefineItem::Primitive(p) = &def.items[0] {
         assert_eq!(p.kind, PrimKind::Torus);
         assert_eq!(p.props[0].key, "major");
-    } else { panic!() }
+    } else {
+        panic!()
+    }
 }
 
 #[test]
@@ -123,7 +147,9 @@ fn define_pyramid() {
     let def = f.defines().next().unwrap();
     if let DefineItem::Primitive(p) = &def.items[0] {
         assert_eq!(p.kind, PrimKind::Pyramid);
-    } else { panic!() }
+    } else {
+        panic!()
+    }
 }
 
 #[test]
@@ -133,8 +159,16 @@ fn define_prism() {
     let def = f.defines().next().unwrap();
     if let DefineItem::Primitive(p) = &def.items[0] {
         assert_eq!(p.kind, PrimKind::Prism);
-        assert_eq!(p.props[0], Prop { key: "sides".into(), value: 6.0 });
-    } else { panic!() }
+        assert_eq!(
+            p.props[0],
+            Prop {
+                key: "sides".into(),
+                value: 6.0
+            }
+        );
+    } else {
+        panic!()
+    }
 }
 
 // ── move statements ────────────────────────────────────────────────────────────
@@ -154,9 +188,23 @@ end
     let def = f.defines().next().unwrap();
     if let DefineItem::Primitive(p) = &def.items[0] {
         assert_eq!(p.moves.len(), 2);
-        assert_eq!(p.moves[0], MoveStmt { axis: Axis::X, value: 5.0  });
-        assert_eq!(p.moves[1], MoveStmt { axis: Axis::Z, value: -3.0 });
-    } else { panic!() }
+        assert_eq!(
+            p.moves[0],
+            MoveStmt {
+                axis: Axis::X,
+                value: 5.0
+            }
+        );
+        assert_eq!(
+            p.moves[1],
+            MoveStmt {
+                axis: Axis::Z,
+                value: -3.0
+            }
+        );
+    } else {
+        panic!()
+    }
 }
 
 // ── Manipulations ──────────────────────────────────────────────────────────────
@@ -193,7 +241,10 @@ fn hole_manipulation_with_depth() {
     let def = f.defines().next().unwrap();
     assert_eq!(
         def.items[1],
-        DefineItem::Manip(Manipulation::Hole { diameter: 3.2, depth: Some(15.0) })
+        DefineItem::Manip(Manipulation::Hole {
+            diameter: 3.2,
+            depth: Some(15.0)
+        })
     );
 }
 
@@ -204,7 +255,10 @@ fn hole_manipulation_without_depth() {
     let def = f.defines().next().unwrap();
     assert_eq!(
         def.items[1],
-        DefineItem::Manip(Manipulation::Hole { diameter: 3.2, depth: None })
+        DefineItem::Manip(Manipulation::Hole {
+            diameter: 3.2,
+            depth: None
+        })
     );
 }
 
@@ -236,7 +290,9 @@ fn assemble_place_at_coords() {
     let asm = f.assemblies().next().unwrap();
     if let AssembleItem::Op(AssembleOp::Place { at, .. }) = &asm.items[0] {
         assert_eq!(*at, Position::Coords(1.0, 2.0, 3.0));
-    } else { panic!() }
+    } else {
+        panic!()
+    }
 }
 
 #[test]
@@ -265,7 +321,9 @@ fn assemble_cut_without_pointing() {
     let asm = f.assemblies().next().unwrap();
     if let AssembleItem::Op(AssembleOp::Cut { pointing, .. }) = &asm.items[1] {
         assert_eq!(*pointing, None);
-    } else { panic!() }
+    } else {
+        panic!()
+    }
 }
 
 #[test]
@@ -273,7 +331,10 @@ fn assemble_join() {
     let src = "assemble a\n  place b at origin\n  join c at (5, 0, 0)\nend";
     let f = parse_str(src).unwrap();
     let asm = f.assemblies().next().unwrap();
-    assert!(matches!(asm.items[1], AssembleItem::Op(AssembleOp::Join { .. })));
+    assert!(matches!(
+        asm.items[1],
+        AssembleItem::Op(AssembleOp::Join { .. })
+    ));
 }
 
 // ── export block ───────────────────────────────────────────────────────────────
@@ -289,8 +350,8 @@ end
 "#;
     let f = parse_str(src).unwrap();
     let exp = f.export().expect("no export block");
-    assert_eq!(exp.format.as_deref(),  Some("stl"));
-    assert_eq!(exp.quality,            Some(Quality::High));
+    assert_eq!(exp.format.as_deref(), Some("stl"));
+    assert_eq!(exp.quality, Some(Quality::High));
     assert!(exp.file.as_deref().unwrap().contains("out"));
 }
 
@@ -301,7 +362,7 @@ fn export_block_format_only() {
     let exp = f.export().unwrap();
     assert_eq!(exp.format.as_deref(), Some("obj"));
     assert_eq!(exp.quality, None);
-    assert_eq!(exp.file,    None);
+    assert_eq!(exp.file, None);
 }
 
 // ── Negative cases ─────────────────────────────────────────────────────────────
@@ -364,12 +425,14 @@ fn negative_number_in_position() {
     let asm = f.assemblies().next().unwrap();
     if let AssembleItem::Op(AssembleOp::Place { at, .. }) = &asm.items[0] {
         assert_eq!(*at, Position::Coords(-25.0, -15.0, 0.0));
-    } else { panic!() }
+    } else {
+        panic!()
+    }
 }
 
 #[test]
 fn unit_scale_factors() {
-    assert_eq!(Unit::Mm.to_mm(),  1.0);
+    assert_eq!(Unit::Mm.to_mm(), 1.0);
     assert_eq!(Unit::Cm.to_mm(), 10.0);
     assert!((Unit::In.to_mm() - 25.4).abs() < 1e-6);
 }

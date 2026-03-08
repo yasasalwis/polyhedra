@@ -1,22 +1,24 @@
 //! Integration tests for the Dual Contouring mesher.
 
-use _core::mesher::{mesh, MeshConfig};
-use _core::sdf::primitives::{CubeSdf, CylinderSdf, SphereSdf};
-use _core::sdf::operations::UnionNode;
+use _core::mesher::{MeshConfig, mesh};
 use _core::sdf::SdfNode;
+use _core::sdf::operations::UnionNode;
+use _core::sdf::primitives::{CubeSdf, CylinderSdf, SphereSdf};
 use glam::Vec3;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 /// Coarse resolution — fast enough for CI.
-fn coarse(half: f32) -> MeshConfig { MeshConfig::centered(half, 24) }
+fn coarse(half: f32) -> MeshConfig {
+    MeshConfig::centered(half, 24)
+}
 
 // ── Sphere ────────────────────────────────────────────────────────────────────
 
 #[test]
 fn sphere_produces_vertices_and_triangles() {
     let m = mesh(&SphereSdf::new(5.0), &coarse(7.0));
-    assert!(m.vertex_count()   > 0, "no vertices");
+    assert!(m.vertex_count() > 0, "no vertices");
     assert!(m.triangle_count() > 0, "no triangles");
 }
 
@@ -42,11 +44,11 @@ fn sphere_vertex_count_scales_with_resolution() {
 /// grid-cell half-diagonal of radius 5 at resolution 24 — cell side ≈ 0.58).
 #[test]
 fn sphere_vertices_near_surface() {
-    let r   = 5.0_f32;
+    let r = 5.0_f32;
     let cfg = coarse(7.0);
-    let m   = mesh(&SphereSdf::new(r), &cfg);
+    let m = mesh(&SphereSdf::new(r), &cfg);
     let cell_diag = (cfg.bounds_max - cfg.bounds_min) / cfg.resolution as f32;
-    let tol = cell_diag.length();   // ~1 cell diagonal
+    let tol = cell_diag.length(); // ~1 cell diagonal
 
     for (idx, v) in m.vertices.iter().enumerate() {
         let dist = (v.length() - r).abs();
@@ -62,7 +64,7 @@ fn sphere_vertices_near_surface() {
 #[test]
 fn cube_produces_valid_mesh() {
     let m = mesh(&CubeSdf::new(10.0, 10.0, 10.0), &coarse(8.0));
-    assert!(m.vertex_count()   > 0);
+    assert!(m.vertex_count() > 0);
     assert!(m.triangle_count() > 0);
     assert!(m.is_index_valid());
 }
@@ -83,7 +85,7 @@ fn cube_has_enough_triangles() {
 #[test]
 fn cylinder_produces_valid_mesh() {
     let m = mesh(&CylinderSdf::new(4.0, 8.0), &coarse(7.0));
-    assert!(m.vertex_count()   > 0);
+    assert!(m.vertex_count() > 0);
     assert!(m.triangle_count() > 0);
     assert!(m.is_index_valid());
 }
@@ -96,7 +98,7 @@ fn cylinder_produces_valid_mesh() {
 fn truncated_sphere_still_valid() {
     // Sphere r=5 but bounds only ±3 — caps will be open.
     let cfg = MeshConfig::centered(3.0, 16);
-    let m   = mesh(&SphereSdf::new(5.0), &cfg);
+    let m = mesh(&SphereSdf::new(5.0), &cfg);
     assert!(m.is_index_valid());
 }
 
@@ -106,7 +108,7 @@ fn truncated_sphere_still_valid() {
 fn mesh_from_sdf_node_trait_object() {
     let node: SdfNode = Box::new(SphereSdf::new(5.0));
     let m = mesh(node.as_ref(), &coarse(7.0));
-    assert!(m.vertex_count()   > 0);
+    assert!(m.vertex_count() > 0);
     assert!(m.is_index_valid());
 }
 
@@ -121,7 +123,7 @@ fn union_two_spheres_produces_valid_mesh() {
     // spheres produces a valid mesh.
     let union: SdfNode = Box::new(UnionNode { a, b });
     let m = mesh(union.as_ref(), &coarse(7.0));
-    assert!(m.vertex_count()   > 0);
+    assert!(m.vertex_count() > 0);
     assert!(m.triangle_count() > 0);
     assert!(m.is_index_valid());
 }
@@ -132,7 +134,7 @@ fn union_two_spheres_produces_valid_mesh() {
 fn mesh_config_centered_bounds() {
     let cfg = MeshConfig::centered(5.0, 32);
     assert_eq!(cfg.bounds_min, Vec3::splat(-5.0));
-    assert_eq!(cfg.bounds_max, Vec3::splat( 5.0));
+    assert_eq!(cfg.bounds_max, Vec3::splat(5.0));
     assert_eq!(cfg.resolution, 32);
 }
 

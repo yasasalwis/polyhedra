@@ -18,12 +18,16 @@ pub struct Circle {
 }
 
 impl Circle {
-    pub fn new(radius: f32) -> Self { Self { radius } }
+    pub fn new(radius: f32) -> Self {
+        Self { radius }
+    }
 }
 
 impl Sdf2d for Circle {
     #[inline]
-    fn distance(&self, p: Vec2) -> f32 { p.length() - self.radius }
+    fn distance(&self, p: Vec2) -> f32 {
+        p.length() - self.radius
+    }
 }
 
 // ── Rect ──────────────────────────────────────────────────────────────────────
@@ -42,11 +46,15 @@ pub struct Rect {
 
 impl Rect {
     pub fn new(width: f32, height: f32) -> Self {
-        Self { half: Vec2::new(width * 0.5, height * 0.5) }
+        Self {
+            half: Vec2::new(width * 0.5, height * 0.5),
+        }
     }
 
     /// Full width and height.
-    pub fn dimensions(&self) -> (f32, f32) { (self.half.x * 2.0, self.half.y * 2.0) }
+    pub fn dimensions(&self) -> (f32, f32) {
+        (self.half.x * 2.0, self.half.y * 2.0)
+    }
 }
 
 impl Sdf2d for Rect {
@@ -64,7 +72,7 @@ impl Sdf2d for Rect {
 /// The shape is identical to `Rect` offset inward by `radius` then expanded
 /// back — equivalent to the Minkowski sum with a disk of the given radius.
 pub struct RoundedRect {
-    half:   Vec2,
+    half: Vec2,
     radius: f32,
 }
 
@@ -78,7 +86,10 @@ impl RoundedRect {
             radius <= width.min(height) * 0.5,
             "corner radius {radius} exceeds half of smallest extent"
         );
-        Self { half: Vec2::new(width * 0.5, height * 0.5), radius }
+        Self {
+            half: Vec2::new(width * 0.5, height * 0.5),
+            radius,
+        }
     }
 }
 
@@ -104,30 +115,32 @@ impl Sdf2d for RoundedRect {
 ///
 /// [`PrismSdf`]: crate::sdf::primitives::PrismSdf
 pub struct RegularPolygon {
-    pub sides:   u32,
+    pub sides: u32,
     pub apothem: f32,
 }
 
 impl RegularPolygon {
-    pub fn new(sides: u32, apothem: f32) -> Self { Self { sides, apothem } }
+    pub fn new(sides: u32, apothem: f32) -> Self {
+        Self { sides, apothem }
+    }
 }
 
 impl Sdf2d for RegularPolygon {
     fn distance(&self, p: Vec2) -> f32 {
-        let n      = self.sides as f32;
-        let a      = self.apothem;
-        let han    = PI / n;            // π/n
-        let an     = 2.0 * han;         // 2π/n
-        let corner = a * han.tan();     // half-edge width
+        let n = self.sides as f32;
+        let a = self.apothem;
+        let han = PI / n; // π/n
+        let an = 2.0 * han; // 2π/n
+        let corner = a * han.tan(); // half-edge width
 
-        let r     = p.length();
+        let r = p.length();
         let angle = p.y.atan2(p.x);
         let sector_angle = ((angle + han).rem_euclid(an) - han).abs();
 
         let px = r * sector_angle.cos();
         let py = r * sector_angle.sin();
 
-        let ny  = py.clamp(0.0, corner);
+        let ny = py.clamp(0.0, corner);
         let raw = (px - a).hypot(py - ny);
         if px <= a && py <= corner { -raw } else { raw }
     }
@@ -143,8 +156,8 @@ impl Sdf2d for RegularPolygon {
 /// d(p) = |p − a − (b−a)·t| − radius
 /// ```
 pub struct Capsule {
-    pub a:      Vec2,
-    pub b:      Vec2,
+    pub a: Vec2,
+    pub b: Vec2,
     pub radius: f32,
 }
 
@@ -152,8 +165,8 @@ impl Capsule {
     /// Horizontal capsule: `a = (−half_length, 0)`, `b = (half_length, 0)`.
     pub fn horizontal(half_length: f32, radius: f32) -> Self {
         Self {
-            a:      Vec2::new(-half_length, 0.0),
-            b:      Vec2::new( half_length, 0.0),
+            a: Vec2::new(-half_length, 0.0),
+            b: Vec2::new(half_length, 0.0),
             radius,
         }
     }
@@ -161,8 +174,8 @@ impl Capsule {
     /// Vertical capsule: `a = (0, −half_length)`, `b = (0, half_length)`.
     pub fn vertical(half_length: f32, radius: f32) -> Self {
         Self {
-            a:      Vec2::new(0.0, -half_length),
-            b:      Vec2::new(0.0,  half_length),
+            a: Vec2::new(0.0, -half_length),
+            b: Vec2::new(0.0, half_length),
             radius,
         }
     }
@@ -172,8 +185,8 @@ impl Sdf2d for Capsule {
     #[inline]
     fn distance(&self, p: Vec2) -> f32 {
         let ba = self.b - self.a;
-        let pa = p    - self.a;
-        let t  = (pa.dot(ba) / ba.dot(ba)).clamp(0.0, 1.0);
+        let pa = p - self.a;
+        let t = (pa.dot(ba) / ba.dot(ba)).clamp(0.0, 1.0);
         (pa - ba * t).length() - self.radius
     }
 }
@@ -199,12 +212,20 @@ mod tests {
 
     #[test]
     fn circle_surface_is_zero() {
-        assert_abs_diff_eq!(Circle::new(5.0).distance(Vec2::new(5.0, 0.0)), 0.0, epsilon = 1e-6);
+        assert_abs_diff_eq!(
+            Circle::new(5.0).distance(Vec2::new(5.0, 0.0)),
+            0.0,
+            epsilon = 1e-6
+        );
     }
 
     #[test]
     fn circle_outside_distance() {
-        assert_abs_diff_eq!(Circle::new(5.0).distance(Vec2::new(8.0, 0.0)), 3.0, epsilon = 1e-6);
+        assert_abs_diff_eq!(
+            Circle::new(5.0).distance(Vec2::new(8.0, 0.0)),
+            3.0,
+            epsilon = 1e-6
+        );
     }
 
     // ── Rect ───────────────────────────────────────────────────────────────
@@ -224,7 +245,11 @@ mod tests {
     #[test]
     fn rect_center_distance_equals_negative_min_half() {
         // Nearest face is 3 units away.
-        assert_abs_diff_eq!(Rect::new(10.0, 6.0).distance(Vec2::ZERO), -3.0, epsilon = 1e-6);
+        assert_abs_diff_eq!(
+            Rect::new(10.0, 6.0).distance(Vec2::ZERO),
+            -3.0,
+            epsilon = 1e-6
+        );
     }
 
     #[test]
@@ -257,7 +282,7 @@ mod tests {
     fn rounded_rect_corner_rounded() {
         // The sharp corner at (5,3) moves inward by radius 1 → corner arc centre at (4,2).
         // Point at (5,3) was exactly on corner; now it's outside the arc.
-        let sharp  = Rect::new(10.0, 6.0);
+        let sharp = Rect::new(10.0, 6.0);
         let rounded = RoundedRect::new(10.0, 6.0, 1.0);
         // Sharp corner distance = 0; rounded should be > 0 (outside the arc).
         assert_abs_diff_eq!(sharp.distance(Vec2::new(5.0, 3.0)), 0.0, epsilon = 1e-5);
@@ -294,8 +319,8 @@ mod tests {
     #[test]
     fn square_polygon_matches_rect() {
         // n=4, apothem=5 → 10×10 square.  Both should agree at the face centre.
-        let sq  = RegularPolygon::new(4, 5.0);
-        let r   = Rect::new(10.0, 10.0);
+        let sq = RegularPolygon::new(4, 5.0);
+        let r = Rect::new(10.0, 10.0);
         assert_abs_diff_eq!(
             sq.distance(Vec2::new(5.0, 0.0)),
             r.distance(Vec2::new(5.0, 0.0)),

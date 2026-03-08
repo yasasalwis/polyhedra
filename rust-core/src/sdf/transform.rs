@@ -10,7 +10,7 @@ use crate::sdf::{Sdf, SdfNode};
 
 /// Move an SDF to a new position.
 pub struct Translate {
-    pub inner:  SdfNode,
+    pub inner: SdfNode,
     pub offset: Vec3,
 }
 impl Sdf for Translate {
@@ -24,7 +24,7 @@ impl Sdf for Translate {
 
 /// Scale an SDF uniformly. Non-uniform scaling is handled by `ScaleNonUniform`.
 pub struct Scale {
-    pub inner:  SdfNode,
+    pub inner: SdfNode,
     pub factor: f32,
 }
 impl Sdf for Scale {
@@ -58,13 +58,17 @@ impl Sdf for ScaleNonUniform {
 /// Rotate an SDF by a quaternion. The inverse rotation is applied to the
 /// query point to keep the SDF in local space.
 pub struct Rotate {
-    pub inner:       SdfNode,
-    pub rotation:    Quat,
+    pub inner: SdfNode,
+    pub rotation: Quat,
     pub inv_rotation: Quat,
 }
 impl Rotate {
     pub fn new(inner: SdfNode, rotation: Quat) -> Self {
-        Self { inner, rotation, inv_rotation: rotation.inverse() }
+        Self {
+            inner,
+            rotation,
+            inv_rotation: rotation.inverse(),
+        }
     }
 }
 impl Sdf for Rotate {
@@ -103,12 +107,13 @@ impl Sdf for Mirror {
 
 /// Apply an arbitrary `Transform` (translation + rotation + scale) to an SDF.
 pub struct TransformNode {
-    pub inner:     SdfNode,
+    pub inner: SdfNode,
     pub transform: Transform,
 }
 impl Sdf for TransformNode {
     #[inline]
     fn distance(&self, p: Vec3) -> f32 {
-        self.inner.distance(self.transform.inverse_transform_point(p))
+        self.inner
+            .distance(self.transform.inverse_transform_point(p))
     }
 }

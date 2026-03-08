@@ -38,14 +38,20 @@ pub struct Mesh {
 
 impl Mesh {
     /// Number of triangles.
-    pub fn triangle_count(&self) -> usize { self.triangles.len() }
+    pub fn triangle_count(&self) -> usize {
+        self.triangles.len()
+    }
     /// Number of vertices.
-    pub fn vertex_count(&self) -> usize { self.vertices.len() }
+    pub fn vertex_count(&self) -> usize {
+        self.vertices.len()
+    }
 
     /// `true` if every triangle index is within `vertices` bounds.
     pub fn is_index_valid(&self) -> bool {
         let n = self.vertices.len() as u32;
-        self.triangles.iter().all(|t| t[0] < n && t[1] < n && t[2] < n)
+        self.triangles
+            .iter()
+            .all(|t| t[0] < n && t[1] < n && t[2] < n)
     }
 }
 
@@ -74,7 +80,9 @@ impl MeshConfig {
 }
 
 impl Default for MeshConfig {
-    fn default() -> Self { Self::centered(1.0, 32) }
+    fn default() -> Self {
+        Self::centered(1.0, 32)
+    }
 }
 
 // ── Mesher entry point ────────────────────────────────────────────────────────
@@ -85,10 +93,10 @@ impl Default for MeshConfig {
 /// contain the surface — if the SDF is negative anywhere on the boundary the
 /// output mesh will have open edges there.
 pub fn mesh(sdf: &dyn Sdf, cfg: &MeshConfig) -> Mesh {
-    let n  = cfg.resolution as usize;
+    let n = cfg.resolution as usize;
     let nv = n + 1; // grid vertices per axis
     let step = (cfg.bounds_max - cfg.bounds_min) / cfg.resolution as f32;
-    let lam  = cfg.lambda as f64;
+    let lam = cfg.lambda as f64;
 
     // ── Step 1: parallel SDF sampling ────────────────────────────────────────
     let total_v = nv * nv * nv;
@@ -98,8 +106,8 @@ pub fn mesh(sdf: &dyn Sdf, cfg: &MeshConfig) -> Mesh {
             let i = idx % nv;
             let j = (idx / nv) % nv;
             let k = idx / (nv * nv);
-            let p = cfg.bounds_min
-                + Vec3::new(i as f32 * step.x, j as f32 * step.y, k as f32 * step.z);
+            let p =
+                cfg.bounds_min + Vec3::new(i as f32 * step.x, j as f32 * step.y, k as f32 * step.z);
             sdf.distance(p)
         })
         .collect();
@@ -109,8 +117,7 @@ pub fn mesh(sdf: &dyn Sdf, cfg: &MeshConfig) -> Mesh {
 
     // World-space position of grid vertex (i, j, k).
     let gpos = |i: usize, j: usize, k: usize| -> Vec3 {
-        cfg.bounds_min
-            + Vec3::new(i as f32 * step.x, j as f32 * step.y, k as f32 * step.z)
+        cfg.bounds_min + Vec3::new(i as f32 * step.x, j as f32 * step.y, k as f32 * step.z)
     };
 
     // ── Step 2: active cells → QEF vertices ──────────────────────────────────
@@ -118,53 +125,66 @@ pub fn mesh(sdf: &dyn Sdf, cfg: &MeshConfig) -> Mesh {
     // Corner index layout: dx + dy*2 + dz*4.
     const EDGES: [(usize, usize, usize, usize, usize, usize); 12] = [
         // X-parallel
-        (0,0,0, 1,0,0), (0,1,0, 1,1,0), (0,0,1, 1,0,1), (0,1,1, 1,1,1),
+        (0, 0, 0, 1, 0, 0),
+        (0, 1, 0, 1, 1, 0),
+        (0, 0, 1, 1, 0, 1),
+        (0, 1, 1, 1, 1, 1),
         // Y-parallel
-        (0,0,0, 0,1,0), (1,0,0, 1,1,0), (0,0,1, 0,1,1), (1,0,1, 1,1,1),
+        (0, 0, 0, 0, 1, 0),
+        (1, 0, 0, 1, 1, 0),
+        (0, 0, 1, 0, 1, 1),
+        (1, 0, 1, 1, 1, 1),
         // Z-parallel
-        (0,0,0, 0,0,1), (1,0,0, 1,0,1), (0,1,0, 0,1,1), (1,1,0, 1,1,1),
+        (0, 0, 0, 0, 0, 1),
+        (1, 0, 0, 1, 0, 1),
+        (0, 1, 0, 0, 1, 1),
+        (1, 1, 0, 1, 1, 1),
     ];
 
     // cell_vertex[i + j*n + k*n*n] = Some(vertex_index) for active cells.
     let mut cell_vertex: Vec<Option<u32>> = vec![None; n * n * n];
-    let mut vertices: Vec<Vec3>           = Vec::new();
+    let mut vertices: Vec<Vec3> = Vec::new();
 
     for k in 0..n {
         for j in 0..n {
             for i in 0..n {
                 // Eight corner values: c[dx + dy*2 + dz*4]
                 let c = [
-                    values[vi(i,   j,   k)],   // 0 = (0,0,0)
-                    values[vi(i+1, j,   k)],   // 1 = (1,0,0)
-                    values[vi(i,   j+1, k)],   // 2 = (0,1,0)
-                    values[vi(i+1, j+1, k)],   // 3 = (1,1,0)
-                    values[vi(i,   j,   k+1)], // 4 = (0,0,1)
-                    values[vi(i+1, j,   k+1)], // 5 = (1,0,1)
-                    values[vi(i,   j+1, k+1)], // 6 = (0,1,1)
-                    values[vi(i+1, j+1, k+1)], // 7 = (1,1,1)
+                    values[vi(i, j, k)],             // 0 = (0,0,0)
+                    values[vi(i + 1, j, k)],         // 1 = (1,0,0)
+                    values[vi(i, j + 1, k)],         // 2 = (0,1,0)
+                    values[vi(i + 1, j + 1, k)],     // 3 = (1,1,0)
+                    values[vi(i, j, k + 1)],         // 4 = (0,0,1)
+                    values[vi(i + 1, j, k + 1)],     // 5 = (1,0,1)
+                    values[vi(i, j + 1, k + 1)],     // 6 = (0,1,1)
+                    values[vi(i + 1, j + 1, k + 1)], // 7 = (1,1,1)
                 ];
 
                 let has_neg = c.iter().any(|&v| v < 0.0);
                 let has_pos = c.iter().any(|&v| v >= 0.0);
-                if !has_neg || !has_pos { continue; }
+                if !has_neg || !has_pos {
+                    continue;
+                }
 
                 // Accumulate QEF from all sign-changing edges.
                 let mut qef = Qef::new();
                 for &(ax, ay, az, bx, by, bz) in &EDGES {
                     let va = c[ax + ay * 2 + az * 4];
                     let vb = c[bx + by * 2 + bz * 4];
-                    if (va < 0.0) == (vb < 0.0) { continue; }
+                    if (va < 0.0) == (vb < 0.0) {
+                        continue;
+                    }
 
                     // Linear-interpolation crossing point.
                     let t = va / (va - vb);
                     let pa = gpos(i + ax, j + ay, k + az);
                     let pb = gpos(i + bx, j + by, k + bz);
-                    let p  = pa + t * (pb - pa);
+                    let p = pa + t * (pb - pa);
                     qef.add(p, sdf.normal(p));
                 }
 
-                let cell_min    = gpos(i, j, k);
-                let cell_max    = gpos(i + 1, j + 1, k + 1);
+                let cell_min = gpos(i, j, k);
+                let cell_max = gpos(i + 1, j + 1, k + 1);
                 let cell_center = (cell_min + cell_max) * 0.5;
                 let v = qef.solve(cell_center, lam).clamp(cell_min, cell_max);
 
@@ -181,8 +201,11 @@ pub fn mesh(sdf: &dyn Sdf, cfg: &MeshConfig) -> Mesh {
     // if out of range or inactive.  Uses wrapping_sub so boundary indices
     // naturally become usize::MAX which is ≥ n and returns None.
     let cv = |ci: usize, cj: usize, ck: usize| -> Option<u32> {
-        if ci >= n || cj >= n || ck >= n { None }
-        else { cell_vertex[ci + cj * n + ck * n * n] }
+        if ci >= n || cj >= n || ck >= n {
+            None
+        } else {
+            cell_vertex[ci + cj * n + ck * n * n]
+        }
     };
 
     let mut triangles: Vec<[u32; 3]> = Vec::new();
@@ -209,12 +232,14 @@ pub fn mesh(sdf: &dyn Sdf, cfg: &MeshConfig) -> Mesh {
     for k in 0..=n {
         for j in 0..=n {
             for i in 0..n {
-                let v0 = values[vi(i,     j, k)];
+                let v0 = values[vi(i, j, k)];
                 let v1 = values[vi(i + 1, j, k)];
-                if (v0 < 0.0) == (v1 < 0.0) { continue; }
+                if (v0 < 0.0) == (v1 < 0.0) {
+                    continue;
+                }
                 emit_quad!(
-                    cv(i, j,                 k),
-                    cv(i, j,                 k.wrapping_sub(1)),
+                    cv(i, j, k),
+                    cv(i, j, k.wrapping_sub(1)),
                     cv(i, j.wrapping_sub(1), k.wrapping_sub(1)),
                     cv(i, j.wrapping_sub(1), k),
                     v0 > 0.0
@@ -227,14 +252,16 @@ pub fn mesh(sdf: &dyn Sdf, cfg: &MeshConfig) -> Mesh {
     for k in 0..=n {
         for j in 0..n {
             for i in 0..=n {
-                let v0 = values[vi(i, j,     k)];
+                let v0 = values[vi(i, j, k)];
                 let v1 = values[vi(i, j + 1, k)];
-                if (v0 < 0.0) == (v1 < 0.0) { continue; }
+                if (v0 < 0.0) == (v1 < 0.0) {
+                    continue;
+                }
                 emit_quad!(
-                    cv(i,                 j, k),
+                    cv(i, j, k),
                     cv(i.wrapping_sub(1), j, k),
                     cv(i.wrapping_sub(1), j, k.wrapping_sub(1)),
-                    cv(i,                 j, k.wrapping_sub(1)),
+                    cv(i, j, k.wrapping_sub(1)),
                     v0 < 0.0
                 );
             }
@@ -247,17 +274,22 @@ pub fn mesh(sdf: &dyn Sdf, cfg: &MeshConfig) -> Mesh {
             for i in 0..=n {
                 let v0 = values[vi(i, j, k)];
                 let v1 = values[vi(i, j, k + 1)];
-                if (v0 < 0.0) == (v1 < 0.0) { continue; }
+                if (v0 < 0.0) == (v1 < 0.0) {
+                    continue;
+                }
                 emit_quad!(
-                    cv(i,                 j,                 k),
-                    cv(i,                 j.wrapping_sub(1), k),
+                    cv(i, j, k),
+                    cv(i, j.wrapping_sub(1), k),
                     cv(i.wrapping_sub(1), j.wrapping_sub(1), k),
-                    cv(i.wrapping_sub(1), j,                 k),
+                    cv(i.wrapping_sub(1), j, k),
                     v0 > 0.0
                 );
             }
         }
     }
 
-    Mesh { vertices, triangles }
+    Mesh {
+        vertices,
+        triangles,
+    }
 }

@@ -1,12 +1,16 @@
 //! Integration tests for PyramidSdf.
 
-use approx::assert_abs_diff_eq;
-use _core::sdf::primitives::PyramidSdf;
 use _core::sdf::Sdf;
+use _core::sdf::primitives::PyramidSdf;
+use approx::assert_abs_diff_eq;
 use glam::Vec3;
 
-fn square_pyr() -> PyramidSdf { PyramidSdf::new(10.0, 10.0, 10.0) }
-fn rect_pyr()   -> PyramidSdf { PyramidSdf::new(20.0, 10.0, 10.0) }
+fn square_pyr() -> PyramidSdf {
+    PyramidSdf::new(10.0, 10.0, 10.0)
+}
+fn rect_pyr() -> PyramidSdf {
+    PyramidSdf::new(20.0, 10.0, 10.0)
+}
 
 // ── Surface ───────────────────────────────────────────────────────────────
 
@@ -107,13 +111,13 @@ fn pyramid_as_sdf_node() {
 
 #[test]
 fn pyramid_cut_from_cube_gives_void() {
+    use _core::sdf::SdfNode;
     use _core::sdf::operations::DifferenceNode;
     use _core::sdf::primitives::CubeSdf;
-    use _core::sdf::SdfNode;
 
     // 30×30×30 cube with a pyramid-shaped recess cut into the top.
     let cube: SdfNode = Box::new(CubeSdf::new(30.0, 30.0, 30.0));
-    let pyr:  SdfNode = Box::new(PyramidSdf::new(10.0, 10.0, 20.0));
+    let pyr: SdfNode = Box::new(PyramidSdf::new(10.0, 10.0, 20.0));
     let result: SdfNode = Box::new(DifferenceNode { a: cube, b: pyr });
 
     // At origin, inside both → cut out → outside result.

@@ -56,29 +56,49 @@ pub type Sdf2dNode = Box<dyn Sdf2d>;
 // ── 2D Boolean operations ─────────────────────────────────────────────────────
 
 /// Union of two 2D SDFs.
-pub struct Union2d { pub a: Sdf2dNode, pub b: Sdf2dNode }
+pub struct Union2d {
+    pub a: Sdf2dNode,
+    pub b: Sdf2dNode,
+}
 impl Sdf2d for Union2d {
     #[inline]
-    fn distance(&self, p: Vec2) -> f32 { self.a.distance(p).min(self.b.distance(p)) }
+    fn distance(&self, p: Vec2) -> f32 {
+        self.a.distance(p).min(self.b.distance(p))
+    }
 }
 
 /// Difference: a minus b.
-pub struct Difference2d { pub a: Sdf2dNode, pub b: Sdf2dNode }
+pub struct Difference2d {
+    pub a: Sdf2dNode,
+    pub b: Sdf2dNode,
+}
 impl Sdf2d for Difference2d {
     #[inline]
-    fn distance(&self, p: Vec2) -> f32 { self.a.distance(p).max(-self.b.distance(p)) }
+    fn distance(&self, p: Vec2) -> f32 {
+        self.a.distance(p).max(-self.b.distance(p))
+    }
 }
 
 /// Intersection of two 2D SDFs.
-pub struct Intersection2d { pub a: Sdf2dNode, pub b: Sdf2dNode }
+pub struct Intersection2d {
+    pub a: Sdf2dNode,
+    pub b: Sdf2dNode,
+}
 impl Sdf2d for Intersection2d {
     #[inline]
-    fn distance(&self, p: Vec2) -> f32 { self.a.distance(p).max(self.b.distance(p)) }
+    fn distance(&self, p: Vec2) -> f32 {
+        self.a.distance(p).max(self.b.distance(p))
+    }
 }
 
 /// Offset (expand / contract) a 2D SDF.
-pub struct Offset2d { pub inner: Sdf2dNode, pub offset: f32 }
+pub struct Offset2d {
+    pub inner: Sdf2dNode,
+    pub offset: f32,
+}
 impl Sdf2d for Offset2d {
     #[inline]
-    fn distance(&self, p: Vec2) -> f32 { self.inner.distance(p) - self.offset }
+    fn distance(&self, p: Vec2) -> f32 {
+        self.inner.distance(p) - self.offset
+    }
 }

@@ -31,8 +31,8 @@ use crate::sdf::Sdf;
 /// To orient or position it differently, wrap in a
 /// [`crate::sdf::TransformedSdf`] or [`crate::sdf::transform::Rotate`].
 pub struct CylinderSdf {
-    radius:       f32,
-    half_height:  f32,
+    radius: f32,
+    half_height: f32,
 }
 
 impl CylinderSdf {
@@ -76,7 +76,7 @@ impl Sdf for CylinderSdf {
     /// Analytical normal — avoids finite-difference error on flat caps.
     fn normal(&self, p: Vec3) -> Vec3 {
         let lateral = Vec2::new(p.x, p.y).length() - self.radius;
-        let axial   = p.z.abs() - self.half_height;
+        let axial = p.z.abs() - self.half_height;
 
         if axial > lateral {
             // Closest feature is a flat cap.
@@ -128,19 +128,27 @@ mod tests {
 
     #[test]
     fn top_cap_center_is_on_surface() {
-        assert_abs_diff_eq!(cyl().distance(Vec3::new(0.0, 0.0, 10.0)), 0.0, epsilon = 1e-5);
+        assert_abs_diff_eq!(
+            cyl().distance(Vec3::new(0.0, 0.0, 10.0)),
+            0.0,
+            epsilon = 1e-5
+        );
     }
 
     #[test]
     fn bottom_cap_center_is_on_surface() {
-        assert_abs_diff_eq!(cyl().distance(Vec3::new(0.0, 0.0, -10.0)), 0.0, epsilon = 1e-5);
+        assert_abs_diff_eq!(
+            cyl().distance(Vec3::new(0.0, 0.0, -10.0)),
+            0.0,
+            epsilon = 1e-5
+        );
     }
 
     #[test]
     fn rim_edge_is_on_surface() {
         // The rim is where the curved surface meets a cap: (5, 0, ±10).
         let c = cyl();
-        assert_abs_diff_eq!(c.distance(Vec3::new(5.0, 0.0,  10.0)), 0.0, epsilon = 1e-5);
+        assert_abs_diff_eq!(c.distance(Vec3::new(5.0, 0.0, 10.0)), 0.0, epsilon = 1e-5);
         assert_abs_diff_eq!(c.distance(Vec3::new(5.0, 0.0, -10.0)), 0.0, epsilon = 1e-5);
     }
 
@@ -149,13 +157,21 @@ mod tests {
     #[test]
     fn outside_radially_is_positive() {
         // 3 mm past the curved surface, mid-height.
-        assert_abs_diff_eq!(cyl().distance(Vec3::new(8.0, 0.0, 0.0)), 3.0, epsilon = 1e-5);
+        assert_abs_diff_eq!(
+            cyl().distance(Vec3::new(8.0, 0.0, 0.0)),
+            3.0,
+            epsilon = 1e-5
+        );
     }
 
     #[test]
     fn outside_axially_is_positive() {
         // 4 mm above the top cap, on-axis.
-        assert_abs_diff_eq!(cyl().distance(Vec3::new(0.0, 0.0, 14.0)), 4.0, epsilon = 1e-5);
+        assert_abs_diff_eq!(
+            cyl().distance(Vec3::new(0.0, 0.0, 14.0)),
+            4.0,
+            epsilon = 1e-5
+        );
     }
 
     #[test]
@@ -188,7 +204,7 @@ mod tests {
     fn dimensions_round_trip() {
         let c = CylinderSdf::new(7.5, 30.0);
         let (r, h) = c.dimensions();
-        assert_abs_diff_eq!(r, 7.5,  epsilon = 1e-5);
+        assert_abs_diff_eq!(r, 7.5, epsilon = 1e-5);
         assert_abs_diff_eq!(h, 30.0, epsilon = 1e-5);
     }
 

@@ -7,12 +7,12 @@
 //! exercising the same Rust types that `src/python.rs` wraps.
 
 use _core::export::{ExportFormat, to_bytes};
-use _core::mesher::{mesh, MeshConfig};
-use _core::sdf::Sdf;
-use _core::sdf::primitives::{CubeSdf, SphereSdf, CylinderSdf, TorusSdf, PrismSdf};
-use _core::sdf::operations::{UnionNode, DifferenceNode, IntersectionNode, SmoothUnionNode};
-use _core::sdf::transform::{Translate, Scale, Mirror, MirrorPlane, Rotate};
 use _core::manipulations::{OffsetNode, ShellNode};
+use _core::mesher::{MeshConfig, mesh};
+use _core::sdf::Sdf;
+use _core::sdf::operations::{DifferenceNode, IntersectionNode, SmoothUnionNode, UnionNode};
+use _core::sdf::primitives::{CubeSdf, CylinderSdf, PrismSdf, SphereSdf, TorusSdf};
+use _core::sdf::transform::{Mirror, MirrorPlane, Rotate, Scale, Translate};
 use glam::Vec3;
 
 // ── Distance checks (mirrors PySdfNode.distance()) ────────────────────────────
@@ -69,7 +69,10 @@ fn intersection_inside_at_origin() {
 fn smooth_union_blends_between_spheres() {
     let su = SmoothUnionNode {
         a: Box::new(SphereSdf::new(5.0)),
-        b: Box::new(Translate { inner: Box::new(SphereSdf::new(5.0)), offset: Vec3::new(6.0, 0.0, 0.0) }),
+        b: Box::new(Translate {
+            inner: Box::new(SphereSdf::new(5.0)),
+            offset: Vec3::new(6.0, 0.0, 0.0),
+        }),
         k: 2.0,
     };
     // Midpoint should be inside due to blending
@@ -81,7 +84,7 @@ fn smooth_union_blends_between_spheres() {
 #[test]
 fn translate_moves_sphere() {
     let t = Translate {
-        inner:  Box::new(SphereSdf::new(5.0)),
+        inner: Box::new(SphereSdf::new(5.0)),
         offset: Vec3::new(20.0, 0.0, 0.0),
     };
     assert!(t.distance(Vec3::ZERO) > 0.0);
@@ -91,7 +94,7 @@ fn translate_moves_sphere() {
 #[test]
 fn scale_enlarges_sphere() {
     let s = Scale {
-        inner:  Box::new(SphereSdf::new(5.0)),
+        inner: Box::new(SphereSdf::new(5.0)),
         factor: 3.0,
     };
     assert!(s.distance(Vec3::new(12.0, 0.0, 0.0)) < 0.0);
@@ -100,12 +103,15 @@ fn scale_enlarges_sphere() {
 #[test]
 fn mirror_yz_reflects_sphere() {
     let t = Translate {
-        inner:  Box::new(SphereSdf::new(3.0)),
+        inner: Box::new(SphereSdf::new(3.0)),
         offset: Vec3::new(8.0, 0.0, 0.0),
     };
-    let m = Mirror { inner: Box::new(t), plane: MirrorPlane::Yz };
+    let m = Mirror {
+        inner: Box::new(t),
+        plane: MirrorPlane::Yz,
+    };
     // Both +8 and -8 should be inside
-    assert!(m.distance(Vec3::new( 8.0, 0.0, 0.0)) < 0.0);
+    assert!(m.distance(Vec3::new(8.0, 0.0, 0.0)) < 0.0);
     assert!(m.distance(Vec3::new(-8.0, 0.0, 0.0)) < 0.0);
 }
 
@@ -122,8 +128,14 @@ fn rotate_z_90_maps_x_to_y() {
         Box::new(CubeSdf::new(10.0, 2.0, 10.0)), // narrow (2) along local Y
         glam::Quat::from_rotation_z(90f32.to_radians()),
     );
-    assert!(r.distance(Vec3::new(0.8, 0.0, 0.0)) < 0.0, "inside narrow dim");
-    assert!(r.distance(Vec3::new(3.0, 0.0, 0.0)) > 0.0, "outside narrow dim");
+    assert!(
+        r.distance(Vec3::new(0.8, 0.0, 0.0)) < 0.0,
+        "inside narrow dim"
+    );
+    assert!(
+        r.distance(Vec3::new(3.0, 0.0, 0.0)) > 0.0,
+        "outside narrow dim"
+    );
 }
 
 // ── Manipulations ─────────────────────────────────────────────────────────────
@@ -131,17 +143,17 @@ fn rotate_z_90_maps_x_to_y() {
 #[test]
 fn shell_hollows_cube() {
     let s = ShellNode {
-        inner:     Box::new(CubeSdf::new(10.0, 10.0, 10.0)),
+        inner: Box::new(CubeSdf::new(10.0, 10.0, 10.0)),
         thickness: 1.5,
     };
-    assert!(s.distance(Vec3::ZERO) > 0.0);          // deep inside → hollow
+    assert!(s.distance(Vec3::ZERO) > 0.0); // deep inside → hollow
     assert!(s.distance(Vec3::new(4.5, 0.0, 0.0)) < 0.0); // near wall → inside shell
 }
 
 #[test]
 fn offset_grows_sphere() {
     let o = OffsetNode {
-        inner:  Box::new(SphereSdf::new(5.0)),
+        inner: Box::new(SphereSdf::new(5.0)),
         offset: 3.0,
     };
     assert!(o.distance(Vec3::new(7.0, 0.0, 0.0)) < 0.0);
@@ -157,7 +169,12 @@ fn mesh_and_export_all_formats() {
     let m = mesh(&sdf, &cfg);
     assert!(m.triangle_count() > 0);
 
-    for fmt in [ExportFormat::Stl, ExportFormat::Obj, ExportFormat::Ply, ExportFormat::Glb] {
+    for fmt in [
+        ExportFormat::Stl,
+        ExportFormat::Obj,
+        ExportFormat::Ply,
+        ExportFormat::Glb,
+    ] {
         let bytes = to_bytes(&m, fmt).unwrap();
         assert!(!bytes.is_empty(), "{fmt:?} must produce output");
     }
@@ -183,7 +200,10 @@ fn all_solid_primitives_inside_at_origin() {
         Box::new(PrismSdf::new(6, 8.0, 10.0)),
     ];
     for p in &primitives {
-        assert!(p.distance(Vec3::ZERO) < 0.0, "primitive must be inside at origin");
+        assert!(
+            p.distance(Vec3::ZERO) < 0.0,
+            "primitive must be inside at origin"
+        );
     }
 }
 
@@ -201,7 +221,7 @@ fn cone_and_pyramid_construct() {
     use _core::sdf::primitives::{ConeSdf, PyramidSdf};
     // Just verify they construct and return plausible distances
     let cone = ConeSdf::new(4.0, 0.0, 10.0);
-    let pyr  = PyramidSdf::new(8.0, 8.0, 10.0);
+    let pyr = PyramidSdf::new(8.0, 8.0, 10.0);
     // Query well outside both — should be positive
     assert!(cone.distance(Vec3::new(100.0, 0.0, 0.0)) > 0.0);
     assert!(pyr.distance(Vec3::new(100.0, 0.0, 0.0)) > 0.0);

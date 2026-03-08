@@ -29,9 +29,9 @@ use super::Sdf2dNode;
 /// SDF = min(max(w.x, w.y), 0) + length(max(w, 0))
 /// ```
 pub struct ExtrudeNode {
-    pub profile:     Sdf2dNode,
+    pub profile: Sdf2dNode,
     /// Total height of the solid along Z.
-    pub height:      f32,
+    pub height: f32,
 }
 
 impl ExtrudeNode {
@@ -43,8 +43,8 @@ impl ExtrudeNode {
 impl Sdf for ExtrudeNode {
     fn distance(&self, p: Vec3) -> f32 {
         let d_2d = self.profile.distance(Vec2::new(p.x, p.y));
-        let d_z  = p.z.abs() - self.height * 0.5;
-        let w    = Vec2::new(d_2d, d_z);
+        let d_z = p.z.abs() - self.height * 0.5;
+        let w = Vec2::new(d_2d, d_z);
         w.x.max(w.y).min(0.0) + w.max(Vec2::ZERO).length()
     }
 }
@@ -82,15 +82,19 @@ pub enum RevolveAxis {
 /// | **Z**| XY           | Z       | `(sqrt(x²+y²) − offset, z)`  |
 pub struct RevolveNode {
     pub profile: Sdf2dNode,
-    pub axis:    RevolveAxis,
+    pub axis: RevolveAxis,
     /// Radial offset of the profile from the revolution axis.  Zero = profile
     /// passes through the axis (gives a solid).
-    pub offset:  f32,
+    pub offset: f32,
 }
 
 impl RevolveNode {
     pub fn around_z(profile: Sdf2dNode, offset: f32) -> Self {
-        Self { profile, axis: RevolveAxis::Z, offset }
+        Self {
+            profile,
+            axis: RevolveAxis::Z,
+            offset,
+        }
     }
 }
 
@@ -110,8 +114,8 @@ impl Sdf for RevolveNode {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::sketch::primitives::{Circle, Rect, RegularPolygon};
     use crate::sdf::primitives::{CubeSdf, CylinderSdf, PrismSdf, TorusSdf};
+    use crate::sketch::primitives::{Circle, Rect, RegularPolygon};
     use approx::assert_abs_diff_eq;
 
     const EPS: f32 = 1e-4;
@@ -122,15 +126,15 @@ mod tests {
     #[test]
     fn extrude_circle_equals_cylinder() {
         let extrude = ExtrudeNode::new(Box::new(Circle::new(5.0)), 20.0);
-        let cyl     = CylinderSdf::new(5.0, 20.0);
+        let cyl = CylinderSdf::new(5.0, 20.0);
 
         let test_points = [
             Vec3::ZERO,
-            Vec3::new(5.0, 0.0, 0.0),   // curved surface
-            Vec3::new(0.0, 0.0, 10.0),  // top cap
-            Vec3::new(8.0, 0.0, 0.0),   // outside radially
-            Vec3::new(0.0, 0.0, 14.0),  // outside axially
-            Vec3::new(8.0, 0.0, 14.0),  // outside corner
+            Vec3::new(5.0, 0.0, 0.0),  // curved surface
+            Vec3::new(0.0, 0.0, 10.0), // top cap
+            Vec3::new(8.0, 0.0, 0.0),  // outside radially
+            Vec3::new(0.0, 0.0, 14.0), // outside axially
+            Vec3::new(8.0, 0.0, 14.0), // outside corner
         ];
         for p in test_points {
             assert_abs_diff_eq!(extrude.distance(p), cyl.distance(p), epsilon = EPS);
@@ -141,15 +145,15 @@ mod tests {
     #[test]
     fn extrude_rect_equals_cube() {
         let extrude = ExtrudeNode::new(Box::new(Rect::new(10.0, 8.0)), 6.0);
-        let cube    = CubeSdf::new(10.0, 8.0, 6.0);
+        let cube = CubeSdf::new(10.0, 8.0, 6.0);
 
         let test_points = [
             Vec3::ZERO,
-            Vec3::new(5.0, 0.0, 0.0),  // +X face
-            Vec3::new(0.0, 4.0, 0.0),  // +Y face
-            Vec3::new(0.0, 0.0, 3.0),  // top cap
-            Vec3::new(7.0, 0.0, 0.0),  // outside +X
-            Vec3::new(5.0, 4.0, 3.0),  // corner vertex
+            Vec3::new(5.0, 0.0, 0.0), // +X face
+            Vec3::new(0.0, 4.0, 0.0), // +Y face
+            Vec3::new(0.0, 0.0, 3.0), // top cap
+            Vec3::new(7.0, 0.0, 0.0), // outside +X
+            Vec3::new(5.0, 4.0, 3.0), // corner vertex
         ];
         for p in test_points {
             assert_abs_diff_eq!(extrude.distance(p), cube.distance(p), epsilon = EPS);
@@ -160,13 +164,13 @@ mod tests {
     #[test]
     fn extrude_hex_polygon_equals_prism() {
         let extrude = ExtrudeNode::new(Box::new(RegularPolygon::new(6, 5.0)), 20.0);
-        let prism   = PrismSdf::new(6, 10.0, 20.0);
+        let prism = PrismSdf::new(6, 10.0, 20.0);
 
         let test_points = [
             Vec3::ZERO,
-            Vec3::new(5.0, 0.0, 0.0),   // face centre
-            Vec3::new(0.0, 0.0, 10.0),  // top cap
-            Vec3::new(8.0, 0.0, 0.0),   // outside radially
+            Vec3::new(5.0, 0.0, 0.0),  // face centre
+            Vec3::new(0.0, 0.0, 10.0), // top cap
+            Vec3::new(8.0, 0.0, 0.0),  // outside radially
         ];
         for p in test_points {
             assert_abs_diff_eq!(extrude.distance(p), prism.distance(p), epsilon = EPS);
@@ -193,15 +197,15 @@ mod tests {
         let major = 8.0_f32;
         let minor = 2.0_f32;
         let revolve = RevolveNode::around_z(Box::new(Circle::new(minor)), major);
-        let torus   = TorusSdf::new(major, minor);
+        let torus = TorusSdf::new(major, minor);
 
         let test_points = [
-            Vec3::new(major + minor, 0.0, 0.0),         // outer rim +X
-            Vec3::new(major - minor, 0.0, 0.0),         // inner rim +X
-            Vec3::new(major,         0.0, minor),        // top of tube at 0°
-            Vec3::new(0.0,           major + minor, 0.0), // outer rim +Y
-            Vec3::ZERO,                                  // centre (inside the hole)
-            Vec3::new(major + minor + 1.0, 0.0, 0.0),   // outside
+            Vec3::new(major + minor, 0.0, 0.0),       // outer rim +X
+            Vec3::new(major - minor, 0.0, 0.0),       // inner rim +X
+            Vec3::new(major, 0.0, minor),             // top of tube at 0°
+            Vec3::new(0.0, major + minor, 0.0),       // outer rim +Y
+            Vec3::ZERO,                               // centre (inside the hole)
+            Vec3::new(major + minor + 1.0, 0.0, 0.0), // outside
         ];
         for p in test_points {
             assert_abs_diff_eq!(revolve.distance(p), torus.distance(p), epsilon = EPS);
@@ -228,7 +232,11 @@ mod tests {
         // d(p) = |Vec2(r_xy, z)| - radius.  This IS a sphere.
         let revolve = RevolveNode::around_z(Box::new(Circle::new(5.0)), 0.0);
         // At the +X axis: r_xy=5, z=0 → d = |(5,0)| - 5 = 0. On surface. ✓
-        assert_abs_diff_eq!(revolve.distance(Vec3::new(5.0, 0.0, 0.0)), 0.0, epsilon = EPS);
+        assert_abs_diff_eq!(
+            revolve.distance(Vec3::new(5.0, 0.0, 0.0)),
+            0.0,
+            epsilon = EPS
+        );
         // At origin: r_xy=0, z=0 → d = |(0,0)| - 5 = -5. ✓
         assert_abs_diff_eq!(revolve.distance(Vec3::ZERO), -5.0, epsilon = EPS);
     }
@@ -241,17 +249,25 @@ mod tests {
         //   around Y → orbit in XZ plane → surface at (x=7, y=0, z=0)
         let around_x = RevolveNode {
             profile: Box::new(Circle::new(2.0)),
-            axis:    RevolveAxis::X,
-            offset:  5.0,
+            axis: RevolveAxis::X,
+            offset: 5.0,
         };
         let around_y = RevolveNode {
             profile: Box::new(Circle::new(2.0)),
-            axis:    RevolveAxis::Y,
-            offset:  5.0,
+            axis: RevolveAxis::Y,
+            offset: 5.0,
         };
         // around_x surface: sqrt(y²+z²)=7, x=0 → (0, 7, 0)
-        assert_abs_diff_eq!(around_x.distance(Vec3::new(0.0, 7.0, 0.0)), 0.0, epsilon = EPS);
+        assert_abs_diff_eq!(
+            around_x.distance(Vec3::new(0.0, 7.0, 0.0)),
+            0.0,
+            epsilon = EPS
+        );
         // around_y surface: sqrt(x²+z²)=7, y=0 → (7, 0, 0)
-        assert_abs_diff_eq!(around_y.distance(Vec3::new(7.0, 0.0, 0.0)), 0.0, epsilon = EPS);
+        assert_abs_diff_eq!(
+            around_y.distance(Vec3::new(7.0, 0.0, 0.0)),
+            0.0,
+            epsilon = EPS
+        );
     }
 }

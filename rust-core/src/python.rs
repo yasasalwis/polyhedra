@@ -19,15 +19,17 @@ use pyo3::prelude::*;
 
 use crate::error::PolyhedraError;
 use crate::export::{ExportFormat, to_bytes, to_file};
-use crate::mesher::{mesh as do_mesh, MeshConfig, Mesh};
+use crate::manipulations::{ElongateNode, OffsetNode, ShellNode};
+use crate::mesher::{Mesh, MeshConfig, mesh as do_mesh};
 use crate::sdf::Sdf;
-use crate::sdf::primitives::{CubeSdf, SphereSdf, CylinderSdf, ConeSdf, TorusSdf, PyramidSdf, PrismSdf};
-use crate::sdf::transform::{Mirror, MirrorPlane, Rotate, Scale, ScaleNonUniform, Translate};
 use crate::sdf::operations::{
-    UnionNode, DifferenceNode, IntersectionNode,
-    SmoothUnionNode, SmoothDifferenceNode, ChamferUnionNode,
+    ChamferUnionNode, DifferenceNode, IntersectionNode, SmoothDifferenceNode, SmoothUnionNode,
+    UnionNode,
 };
-use crate::manipulations::{OffsetNode, ShellNode, ElongateNode};
+use crate::sdf::primitives::{
+    ConeSdf, CubeSdf, CylinderSdf, PrismSdf, PyramidSdf, SphereSdf, TorusSdf,
+};
+use crate::sdf::transform::{Mirror, MirrorPlane, Rotate, Scale, ScaleNonUniform, Translate};
 
 // ── Arc<dyn Sdf> ↔ Box<dyn Sdf> bridge ───────────────────────────────────────
 
@@ -78,7 +80,9 @@ pub struct PySdfNode {
 
 impl PySdfNode {
     fn new(sdf: impl Sdf + Send + Sync + 'static) -> Self {
-        Self { inner: Arc::new(sdf) }
+        Self {
+            inner: Arc::new(sdf),
+        }
     }
 
     fn from_arc(arc: Arc<dyn Sdf + Send + Sync>) -> Self {
@@ -96,7 +100,6 @@ impl PySdfNode {
 
 #[pymethods]
 impl PySdfNode {
-
     // ── Boolean operations ────────────────────────────────────────────────
 
     /// Union: the combined volume of `self` and `other`.
@@ -139,18 +142,24 @@ impl PySdfNode {
 
     /// Outward offset (positive) or inward shrink (negative).
     fn offset(&self, amount: f32) -> PySdfNode {
-        PySdfNode::new(OffsetNode { inner: self.box_self(), offset: amount })
+        PySdfNode::new(OffsetNode {
+            inner: self.box_self(),
+            offset: amount,
+        })
     }
 
     /// Hollow shell with given wall thickness.
     fn shell(&self, thickness: f32) -> PySdfNode {
-        PySdfNode::new(ShellNode { inner: self.box_self(), thickness })
+        PySdfNode::new(ShellNode {
+            inner: self.box_self(),
+            thickness,
+        })
     }
 
     /// Elongate along each axis by the given amounts `(ex, ey, ez)`.
     fn elongate(&self, ex: f32, ey: f32, ez: f32) -> PySdfNode {
         PySdfNode::new(ElongateNode {
-            inner:   self.box_self(),
+            inner: self.box_self(),
             amounts: Vec3::new(ex, ey, ez),
         })
     }
@@ -160,14 +169,17 @@ impl PySdfNode {
     /// Translate by `(tx, ty, tz)`.
     fn translate(&self, tx: f32, ty: f32, tz: f32) -> PySdfNode {
         PySdfNode::new(Translate {
-            inner:  self.box_self(),
+            inner: self.box_self(),
             offset: Vec3::new(tx, ty, tz),
         })
     }
 
     /// Uniform scale by `factor`.
     fn scale(&self, factor: f32) -> PySdfNode {
-        PySdfNode::new(Scale { inner: self.box_self(), factor })
+        PySdfNode::new(Scale {
+            inner: self.box_self(),
+            factor,
+        })
     }
 
     /// Non-uniform scale by `(sx, sy, sz)`.
@@ -198,17 +210,26 @@ impl PySdfNode {
 
     /// Mirror across the YZ plane (flip X).
     fn mirror_x(&self) -> PySdfNode {
-        PySdfNode::new(Mirror { inner: self.box_self(), plane: MirrorPlane::Yz })
+        PySdfNode::new(Mirror {
+            inner: self.box_self(),
+            plane: MirrorPlane::Yz,
+        })
     }
 
     /// Mirror across the XZ plane (flip Y).
     fn mirror_y(&self) -> PySdfNode {
-        PySdfNode::new(Mirror { inner: self.box_self(), plane: MirrorPlane::Xz })
+        PySdfNode::new(Mirror {
+            inner: self.box_self(),
+            plane: MirrorPlane::Xz,
+        })
     }
 
     /// Mirror across the XY plane (flip Z).
     fn mirror_z(&self) -> PySdfNode {
-        PySdfNode::new(Mirror { inner: self.box_self(), plane: MirrorPlane::Xy })
+        PySdfNode::new(Mirror {
+            inner: self.box_self(),
+            plane: MirrorPlane::Xy,
+        })
     }
 
     // ── Evaluation ────────────────────────────────────────────────────────
@@ -382,7 +403,7 @@ fn mesh_sdf(node: &PySdfNode, resolution: u32, bounds: f32) -> PyResult<PyMesh> 
         return Err(PyValueError::new_err(
             "mesh_sdf produced an empty mesh — \
              try increasing `bounds` or `resolution`, \
-             or check that your SDF contains geometry."
+             or check that your SDF contains geometry.",
         ));
     }
     Ok(PyMesh { inner })
@@ -399,13 +420,13 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyMesh>()?;
 
     // Primitive constructors
-    m.add_function(wrap_pyfunction!(cube,     m)?)?;
-    m.add_function(wrap_pyfunction!(sphere,   m)?)?;
+    m.add_function(wrap_pyfunction!(cube, m)?)?;
+    m.add_function(wrap_pyfunction!(sphere, m)?)?;
     m.add_function(wrap_pyfunction!(cylinder, m)?)?;
-    m.add_function(wrap_pyfunction!(cone,     m)?)?;
-    m.add_function(wrap_pyfunction!(torus,    m)?)?;
-    m.add_function(wrap_pyfunction!(pyramid,  m)?)?;
-    m.add_function(wrap_pyfunction!(prism,    m)?)?;
+    m.add_function(wrap_pyfunction!(cone, m)?)?;
+    m.add_function(wrap_pyfunction!(torus, m)?)?;
+    m.add_function(wrap_pyfunction!(pyramid, m)?)?;
+    m.add_function(wrap_pyfunction!(prism, m)?)?;
 
     // Meshing
     m.add_function(wrap_pyfunction!(mesh_sdf, m)?)?;

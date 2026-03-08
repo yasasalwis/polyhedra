@@ -1,13 +1,17 @@
 //! Integration tests for PrismSdf.
 
-use approx::assert_abs_diff_eq;
-use _core::sdf::primitives::PrismSdf;
 use _core::sdf::Sdf;
+use _core::sdf::primitives::PrismSdf;
+use approx::assert_abs_diff_eq;
 use glam::Vec3;
 use std::f32::consts::TAU;
 
-fn hex() -> PrismSdf { PrismSdf::new(6, 10.0, 20.0) }
-fn tri() -> PrismSdf { PrismSdf::new(3, 10.0, 20.0) }
+fn hex() -> PrismSdf {
+    PrismSdf::new(6, 10.0, 20.0)
+}
+fn tri() -> PrismSdf {
+    PrismSdf::new(3, 10.0, 20.0)
+}
 
 // ── Interior ──────────────────────────────────────────────────────────────
 
@@ -53,7 +57,11 @@ fn hex_corner_vertices_on_surface() {
 fn tri_vertex_on_surface() {
     let t = tri();
     let r = t.circumradius();
-    let d = t.distance(Vec3::new(r * 60_f32.to_radians().cos(), r * 60_f32.to_radians().sin(), 0.0));
+    let d = t.distance(Vec3::new(
+        r * 60_f32.to_radians().cos(),
+        r * 60_f32.to_radians().sin(),
+        0.0,
+    ));
     assert!(d.abs() < 1e-4, "tri vertex: {d}");
 }
 
@@ -75,12 +83,20 @@ fn hex_bottom_cap_on_surface() {
 
 #[test]
 fn hex_outside_face_distance() {
-    assert_abs_diff_eq!(hex().distance(Vec3::new(8.0, 0.0, 0.0)), 3.0, epsilon = 1e-4);
+    assert_abs_diff_eq!(
+        hex().distance(Vec3::new(8.0, 0.0, 0.0)),
+        3.0,
+        epsilon = 1e-4
+    );
 }
 
 #[test]
 fn hex_outside_axially() {
-    assert_abs_diff_eq!(hex().distance(Vec3::new(0.0, 0.0, 14.0)), 4.0, epsilon = 1e-4);
+    assert_abs_diff_eq!(
+        hex().distance(Vec3::new(0.0, 0.0, 14.0)),
+        4.0,
+        epsilon = 1e-4
+    );
 }
 
 #[test]
@@ -124,9 +140,9 @@ fn square_prism_face_distance() {
 
 #[test]
 fn hex_prism_cut_from_cube() {
+    use _core::sdf::SdfNode;
     use _core::sdf::operations::DifferenceNode;
     use _core::sdf::primitives::CubeSdf;
-    use _core::sdf::SdfNode;
 
     // 50×50×50 cube with a hexagonal bore (r=4, h=60) drilled through it.
     let cube: SdfNode = Box::new(CubeSdf::new(50.0, 50.0, 50.0));

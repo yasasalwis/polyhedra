@@ -20,33 +20,33 @@ use std::io::Write;
 use glam::Vec3;
 use serde_json::json;
 
-use crate::mesher::Mesh;
 use crate::error::Result;
+use crate::mesher::Mesh;
 
 use super::compute_vertex_normals;
 
 // ── GLB constants ──────────────────────────────────────────────────────────
 
-const GLB_MAGIC:      u32 = 0x4654_6C67; // b"glTF" — 0x67='g',0x6C='l',0x54='T',0x46='F' LE
-const GLB_VERSION:    u32 = 2;
-const CHUNK_JSON:     u32 = 0x4E4F_534A; // b"JSON"
-const CHUNK_BIN:      u32 = 0x004E_4942; // b"BIN\0"
-const TARGET_INDEX:   u32 = 34963;       // ELEMENT_ARRAY_BUFFER
-const TARGET_VERTEX:  u32 = 34962;       // ARRAY_BUFFER
-const COMP_UINT32:    u32 = 5125;
-const COMP_FLOAT:     u32 = 5126;
+const GLB_MAGIC: u32 = 0x4654_6C67; // b"glTF" — 0x67='g',0x6C='l',0x54='T',0x46='F' LE
+const GLB_VERSION: u32 = 2;
+const CHUNK_JSON: u32 = 0x4E4F_534A; // b"JSON"
+const CHUNK_BIN: u32 = 0x004E_4942; // b"BIN\0"
+const TARGET_INDEX: u32 = 34963; // ELEMENT_ARRAY_BUFFER
+const TARGET_VERTEX: u32 = 34962; // ARRAY_BUFFER
+const COMP_UINT32: u32 = 5125;
+const COMP_FLOAT: u32 = 5126;
 
 /// Serialize `mesh` to binary GLB bytes.
 pub fn to_bytes(mesh: &Mesh) -> Result<Vec<u8>> {
-    let nv      = mesh.vertex_count();
-    let ni      = mesh.triangle_count() * 3;   // total index count
+    let nv = mesh.vertex_count();
+    let ni = mesh.triangle_count() * 3; // total index count
     let normals = compute_vertex_normals(&mesh.vertices, &mesh.triangles);
 
     // ── Binary buffer ────────────────────────────────────────────────────────
-    let idx_bytes  = (ni * 4) as u32;
-    let pos_bytes  = (nv * 12) as u32;  // 3 × f32
+    let idx_bytes = (ni * 4) as u32;
+    let pos_bytes = (nv * 12) as u32; // 3 × f32
     let norm_bytes = (nv * 12) as u32;
-    let bin_len    = idx_bytes + pos_bytes + norm_bytes;
+    let bin_len = idx_bytes + pos_bytes + norm_bytes;
 
     let mut bin: Vec<u8> = Vec::with_capacity(bin_len as usize);
 
@@ -140,11 +140,12 @@ pub fn to_bytes(mesh: &Mesh) -> Result<Vec<u8>> {
         ]
     });
 
-    let json_str = serde_json::to_string(&json_val)
-        .map_err(|e| crate::error::PolyhedraError::ExportError {
-            path:    String::from("<gltf json>"),
+    let json_str = serde_json::to_string(&json_val).map_err(|e| {
+        crate::error::PolyhedraError::ExportError {
+            path: String::from("<gltf json>"),
             message: e.to_string(),
-        })?;
+        }
+    })?;
 
     // Pad JSON to 4-byte boundary with spaces (GLB spec requirement).
     let json_padded_len = pad4(json_str.len());
@@ -152,10 +153,9 @@ pub fn to_bytes(mesh: &Mesh) -> Result<Vec<u8>> {
     json_bytes.resize(json_padded_len, b' ');
 
     // ── Assemble GLB ─────────────────────────────────────────────────────────
-    let total_len =
-        12                                      // GLB header
+    let total_len = 12                                      // GLB header
         + 8 + json_bytes.len()                  // JSON chunk header + data
-        + 8 + bin_padded_len;                   // BIN  chunk header + data
+        + 8 + bin_padded_len; // BIN  chunk header + data
 
     let mut glb: Vec<u8> = Vec::with_capacity(total_len);
 

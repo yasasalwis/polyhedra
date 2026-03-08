@@ -8,18 +8,36 @@
 
 /// Axis enum for move statements and revolve operations.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Axis { X, Y, Z }
+pub enum Axis {
+    X,
+    Y,
+    Z,
+}
 
 /// Cardinal/direction for `pointing` clauses in cut operations.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Direction {
-    Up, Down, Left, Right,
-    PosX, NegX, PosY, NegY, PosZ, NegZ,
+    Up,
+    Down,
+    Left,
+    Right,
+    PosX,
+    NegX,
+    PosY,
+    NegY,
+    PosZ,
+    NegZ,
 }
 
 /// Unit of measurement declared by a `units` statement.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Unit { Mm, Cm, M, In, Ft }
+pub enum Unit {
+    Mm,
+    Cm,
+    M,
+    In,
+    Ft,
+}
 
 impl Unit {
     /// Scale factor relative to millimetres.
@@ -27,7 +45,7 @@ impl Unit {
         match self {
             Unit::Mm => 1.0,
             Unit::Cm => 10.0,
-            Unit::M  => 1_000.0,
+            Unit::M => 1_000.0,
             Unit::In => 25.4,
             Unit::Ft => 304.8,
         }
@@ -46,30 +64,36 @@ pub enum Position {
 /// A single `key value` property line inside a primitive block.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Prop {
-    pub key:   String,
+    pub key: String,
     pub value: f32,
 }
 
 /// A `move axis value` statement inside a primitive block.
 #[derive(Debug, Clone, PartialEq)]
 pub struct MoveStmt {
-    pub axis:  Axis,
+    pub axis: Axis,
     pub value: f32,
 }
 
 /// One of the named primitive keywords.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PrimKind {
-    Cube, Sphere, Cylinder, Cone, Torus, Pyramid, Prism,
+    Cube,
+    Sphere,
+    Cylinder,
+    Cone,
+    Torus,
+    Pyramid,
+    Prism,
 }
 
 /// A complete primitive block: `cube ... end`.
 #[derive(Debug, Clone, PartialEq)]
 pub struct PrimitiveBlock {
-    pub kind:   PrimKind,
-    pub units:  Option<Unit>,
-    pub props:  Vec<Prop>,
-    pub moves:  Vec<MoveStmt>,
+    pub kind: PrimKind,
+    pub units: Option<Unit>,
+    pub props: Vec<Prop>,
+    pub moves: Vec<MoveStmt>,
 }
 
 // ── Manipulations ──────────────────────────────────────────────────────────────
@@ -82,11 +106,20 @@ pub enum Manipulation {
     /// Shell with a wall thickness.
     Shell(f32),
     /// Hole with diameter and optional depth.
-    Hole   { diameter: f32, depth: Option<f32> },
+    Hole {
+        diameter: f32,
+        depth: Option<f32>,
+    },
     /// Thread with diameter and optional pitch.
-    Thread { diameter: f32, pitch: Option<f32> },
+    Thread {
+        diameter: f32,
+        pitch: Option<f32>,
+    },
     /// Linear or circular pattern.
-    Pattern { name: String, count: f32 },
+    Pattern {
+        name: String,
+        count: f32,
+    },
 }
 
 // ── Define block ───────────────────────────────────────────────────────────────
@@ -102,7 +135,7 @@ pub enum DefineItem {
 /// A complete `define <name> ... end` block.
 #[derive(Debug, Clone, PartialEq)]
 pub struct DefineBlock {
-    pub name:  String,
+    pub name: String,
     pub items: Vec<DefineItem>,
 }
 
@@ -111,11 +144,27 @@ pub struct DefineBlock {
 /// A single operation inside an `assemble` block.
 #[derive(Debug, Clone, PartialEq)]
 pub enum AssembleOp {
-    Place { name: String, at: Position },
-    Cut   { name: String, at: Position, pointing: Option<Direction> },
-    Join      { name: String, at: Position },
-    Intersect { name: String, at: Position },
-    Subtract  { name: String, at: Position },
+    Place {
+        name: String,
+        at: Position,
+    },
+    Cut {
+        name: String,
+        at: Position,
+        pointing: Option<Direction>,
+    },
+    Join {
+        name: String,
+        at: Position,
+    },
+    Intersect {
+        name: String,
+        at: Position,
+    },
+    Subtract {
+        name: String,
+        at: Position,
+    },
 }
 
 /// Items that can appear in an `assemble` block.
@@ -129,7 +178,7 @@ pub enum AssembleItem {
 /// A complete `assemble <name> ... end` block.
 #[derive(Debug, Clone, PartialEq)]
 pub struct AssembleBlock {
-    pub name:  String,
+    pub name: String,
     pub items: Vec<AssembleItem>,
 }
 
@@ -140,14 +189,19 @@ pub type ExportFmtStr = String;
 
 /// Quality preset.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Quality { Low, Medium, High, Ultra }
+pub enum Quality {
+    Low,
+    Medium,
+    High,
+    Ultra,
+}
 
 /// A complete `export ... end` block.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ExportBlock {
-    pub format:  Option<ExportFmtStr>,
+    pub format: Option<ExportFmtStr>,
     pub quality: Option<Quality>,
-    pub file:    Option<String>,
+    pub file: Option<String>,
 }
 
 // ── Top-level file ─────────────────────────────────────────────────────────────
@@ -171,21 +225,33 @@ impl PolyhFile {
     /// Iterate over all `define` blocks.
     pub fn defines(&self) -> impl Iterator<Item = &DefineBlock> {
         self.items.iter().filter_map(|i| {
-            if let TopLevelItem::Define(d) = i { Some(d) } else { None }
+            if let TopLevelItem::Define(d) = i {
+                Some(d)
+            } else {
+                None
+            }
         })
     }
 
     /// Iterate over all `assemble` blocks.
     pub fn assemblies(&self) -> impl Iterator<Item = &AssembleBlock> {
         self.items.iter().filter_map(|i| {
-            if let TopLevelItem::Assemble(a) = i { Some(a) } else { None }
+            if let TopLevelItem::Assemble(a) = i {
+                Some(a)
+            } else {
+                None
+            }
         })
     }
 
     /// Return the (first) export block if present.
     pub fn export(&self) -> Option<&ExportBlock> {
         self.items.iter().find_map(|i| {
-            if let TopLevelItem::Export(e) = i { Some(e) } else { None }
+            if let TopLevelItem::Export(e) = i {
+                Some(e)
+            } else {
+                None
+            }
         })
     }
 }

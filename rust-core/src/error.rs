@@ -12,8 +12,8 @@ pub enum PolyhedraError {
     // ── Parser errors ─────────────────────────────────────────────────────
     #[error("Syntax error on line {line}, column {col}: {message}")]
     ParseError {
-        line:    usize,
-        col:     usize,
+        line: usize,
+        col: usize,
         message: String,
     },
 

@@ -32,9 +32,9 @@ use crate::sdf::Sdf;
 /// - Base centre at `(0, 0, -height/2)`.
 /// - Base corners at `(±width/2, ±depth/2, -height/2)`.
 pub struct PyramidSdf {
-    half_width:  f32,   // hx
-    half_depth:  f32,   // hy
-    half_height: f32,   // hh
+    half_width: f32,  // hx
+    half_depth: f32,  // hy
+    half_height: f32, // hh
 }
 
 impl PyramidSdf {
@@ -42,16 +42,20 @@ impl PyramidSdf {
     #[inline]
     pub fn new(base_width: f32, base_depth: f32, height: f32) -> Self {
         Self {
-            half_width:  base_width  * 0.5,
-            half_depth:  base_depth  * 0.5,
-            half_height: height      * 0.5,
+            half_width: base_width * 0.5,
+            half_depth: base_depth * 0.5,
+            half_height: height * 0.5,
         }
     }
 
     /// Return `(base_width, base_depth, height)`.
     #[inline]
     pub fn dimensions(&self) -> (f32, f32, f32) {
-        (self.half_width * 2.0, self.half_depth * 2.0, self.half_height * 2.0)
+        (
+            self.half_width * 2.0,
+            self.half_depth * 2.0,
+            self.half_height * 2.0,
+        )
     }
 }
 
@@ -99,10 +103,14 @@ mod tests {
     use approx::assert_abs_diff_eq;
 
     /// 10 × 10 base, 10 tall.  hx=hy=5, hh=5.  Apex at (0,0,5).
-    fn square_pyr() -> PyramidSdf { PyramidSdf::new(10.0, 10.0, 10.0) }
+    fn square_pyr() -> PyramidSdf {
+        PyramidSdf::new(10.0, 10.0, 10.0)
+    }
 
     /// 20 × 10 base, 10 tall.  hx=10, hy=5, hh=5.
-    fn rect_pyr() -> PyramidSdf { PyramidSdf::new(20.0, 10.0, 10.0) }
+    fn rect_pyr() -> PyramidSdf {
+        PyramidSdf::new(20.0, 10.0, 10.0)
+    }
 
     // ── Key surface points ─────────────────────────────────────────────────
 
@@ -204,8 +212,8 @@ mod tests {
     fn dimensions_round_trip() {
         let p = PyramidSdf::new(8.0, 6.0, 12.0);
         let (w, d, h) = p.dimensions();
-        assert_abs_diff_eq!(w, 8.0,  epsilon = 1e-5);
-        assert_abs_diff_eq!(d, 6.0,  epsilon = 1e-5);
+        assert_abs_diff_eq!(w, 8.0, epsilon = 1e-5);
+        assert_abs_diff_eq!(d, 6.0, epsilon = 1e-5);
         assert_abs_diff_eq!(h, 12.0, epsilon = 1e-5);
     }
 

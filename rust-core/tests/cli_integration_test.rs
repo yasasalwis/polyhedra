@@ -20,7 +20,7 @@ fn bin_path() -> PathBuf {
             .map(PathBuf::from)
             .unwrap_or_else(|_| PathBuf::from("."));
         manifest
-            .parent()                          // workspace root
+            .parent() // workspace root
             .unwrap_or(&manifest)
             .join("target/debug/polyhedra")
     }
@@ -31,10 +31,7 @@ fn examples_dir() -> PathBuf {
     let manifest = std::env::var("CARGO_MANIFEST_DIR")
         .map(PathBuf::from)
         .unwrap_or_else(|_| PathBuf::from("."));
-    manifest
-        .parent()
-        .unwrap_or(&manifest)
-        .join("examples")
+    manifest.parent().unwrap_or(&manifest).join("examples")
 }
 
 /// Run the binary with `args`, returning `(exit_ok, stdout, stderr)`.
@@ -67,14 +64,20 @@ fn run_with_outdir(args: &[&str], extra_args: &[(&str, &str)]) -> (bool, String,
 fn help_exits_zero() {
     let (ok, out, _) = run(&["--help"]);
     assert!(ok, "help should exit 0");
-    assert!(out.contains("polyhedra"), "help text should mention the tool name");
+    assert!(
+        out.contains("polyhedra"),
+        "help text should mention the tool name"
+    );
 }
 
 #[test]
 fn version_exits_zero() {
     let (ok, out, _) = run(&["--version"]);
     assert!(ok, "version should exit 0");
-    assert!(out.contains("polyhedra"), "version text should include binary name");
+    assert!(
+        out.contains("polyhedra"),
+        "version text should include binary name"
+    );
 }
 
 // ── No args → non-zero exit ───────────────────────────────────────────────────
@@ -94,11 +97,7 @@ fn no_args_exits_nonzero() {
 #[test]
 fn validate_hello_polyh_ok() {
     let hello = examples_dir().join("hello.polyh");
-    let (ok, out, err) = run(&[
-        "-c",
-        hello.to_str().unwrap(),
-        "--validate",
-    ]);
+    let (ok, out, err) = run(&["-c", hello.to_str().unwrap(), "--validate"]);
     assert!(ok, "validate should succeed: stderr={err}");
     assert!(
         out.contains("valid") || out.contains("ok") || out.contains("✓"),
@@ -171,20 +170,37 @@ fn compile_hello_produces_stl() {
     std::fs::create_dir_all(&tmp).ok();
 
     let (ok, out, err) = run_with_outdir(
-        &["-c", hello.to_str().unwrap(), "-o", "stl", "--quality", "low"],
+        &[
+            "-c",
+            hello.to_str().unwrap(),
+            "-o",
+            "stl",
+            "--quality",
+            "low",
+        ],
         &[("-d", tmp.to_str().unwrap())],
     );
     assert!(ok, "compile should succeed: stderr={err}\nstdout={out}");
 
     let stl_path = tmp.join("hello.stl");
-    assert!(stl_path.exists(), "STL output file should exist at {}", stl_path.display());
+    assert!(
+        stl_path.exists(),
+        "STL output file should exist at {}",
+        stl_path.display()
+    );
     let size = std::fs::metadata(&stl_path).unwrap().len();
-    assert!(size > 84, "STL should be larger than the 84-byte header: {size} bytes");
+    assert!(
+        size > 84,
+        "STL should be larger than the 84-byte header: {size} bytes"
+    );
 
     // STL triangle count at bytes 80-84 should be non-zero
     let data = std::fs::read(&stl_path).unwrap();
     let tri_count = u32::from_le_bytes([data[80], data[81], data[82], data[83]]);
-    assert!(tri_count > 0, "STL should contain triangles, got {tri_count}");
+    assert!(
+        tri_count > 0,
+        "STL should contain triangles, got {tri_count}"
+    );
 
     // Clean up
     std::fs::remove_file(&stl_path).ok();
@@ -197,10 +213,20 @@ fn compile_hello_produces_obj() {
     std::fs::create_dir_all(&tmp).ok();
 
     let (ok, out, err) = run_with_outdir(
-        &["-c", hello.to_str().unwrap(), "-o", "obj", "--quality", "low"],
+        &[
+            "-c",
+            hello.to_str().unwrap(),
+            "-o",
+            "obj",
+            "--quality",
+            "low",
+        ],
         &[("-d", tmp.to_str().unwrap())],
     );
-    assert!(ok, "compile to obj should succeed: stderr={err}\nstdout={out}");
+    assert!(
+        ok,
+        "compile to obj should succeed: stderr={err}\nstdout={out}"
+    );
 
     let obj_path = tmp.join("hello.obj");
     assert!(obj_path.exists(), "OBJ output file should exist");
@@ -218,7 +244,14 @@ fn compile_hello_multiple_formats() {
     std::fs::create_dir_all(&tmp).ok();
 
     let (ok, _, err) = run_with_outdir(
-        &["-c", hello.to_str().unwrap(), "-o", "stl,ply", "--quality", "low"],
+        &[
+            "-c",
+            hello.to_str().unwrap(),
+            "-o",
+            "stl,ply",
+            "--quality",
+            "low",
+        ],
         &[("-d", tmp.to_str().unwrap())],
     );
     assert!(ok, "multi-format compile should succeed: {err}");
@@ -236,7 +269,14 @@ fn compile_all_format_alias() {
     std::fs::create_dir_all(&tmp).ok();
 
     let (ok, _, err) = run_with_outdir(
-        &["-c", hello.to_str().unwrap(), "-o", "all", "--quality", "low"],
+        &[
+            "-c",
+            hello.to_str().unwrap(),
+            "-o",
+            "all",
+            "--quality",
+            "low",
+        ],
         &[("-d", tmp.to_str().unwrap())],
     );
     assert!(ok, "compile --output all should succeed: {err}");
@@ -257,7 +297,15 @@ fn compile_with_stats_flag() {
     std::fs::create_dir_all(&tmp).ok();
 
     let (ok, out, err) = run_with_outdir(
-        &["-c", hello.to_str().unwrap(), "-o", "stl", "--quality", "low", "--stats"],
+        &[
+            "-c",
+            hello.to_str().unwrap(),
+            "-o",
+            "stl",
+            "--quality",
+            "low",
+            "--stats",
+        ],
         &[("-d", tmp.to_str().unwrap())],
     );
     assert!(ok, "compile --stats should succeed: {err}");
@@ -301,7 +349,14 @@ fn compile_sphere_fixture() {
         let tmp = std::env::temp_dir().join("polyhedra_sphere_out");
         std::fs::create_dir_all(&tmp).ok();
         let (ok, _, err) = run_with_outdir(
-            &["-c", path.to_str().unwrap(), "-o", "stl", "--quality", "low"],
+            &[
+                "-c",
+                path.to_str().unwrap(),
+                "-o",
+                "stl",
+                "--quality",
+                "low",
+            ],
             &[("-d", tmp.to_str().unwrap())],
         );
         assert!(ok, "sphere fixture should compile: {err}");
@@ -317,7 +372,14 @@ fn compile_cylinder_fixture() {
         let tmp = std::env::temp_dir().join("polyhedra_cylinder_out");
         std::fs::create_dir_all(&tmp).ok();
         let (ok, _, err) = run_with_outdir(
-            &["-c", path.to_str().unwrap(), "-o", "stl", "--quality", "low"],
+            &[
+                "-c",
+                path.to_str().unwrap(),
+                "-o",
+                "stl",
+                "--quality",
+                "low",
+            ],
             &[("-d", tmp.to_str().unwrap())],
         );
         assert!(ok, "cylinder fixture should compile: {err}");
@@ -333,7 +395,14 @@ fn compile_torus_fixture() {
         let tmp = std::env::temp_dir().join("polyhedra_torus_out");
         std::fs::create_dir_all(&tmp).ok();
         let (ok, _, err) = run_with_outdir(
-            &["-c", path.to_str().unwrap(), "-o", "stl", "--quality", "low"],
+            &[
+                "-c",
+                path.to_str().unwrap(),
+                "-o",
+                "stl",
+                "--quality",
+                "low",
+            ],
             &[("-d", tmp.to_str().unwrap())],
         );
         assert!(ok, "torus fixture should compile: {err}");
@@ -349,7 +418,14 @@ fn compile_prism_fixture() {
         let tmp = std::env::temp_dir().join("polyhedra_prism_out");
         std::fs::create_dir_all(&tmp).ok();
         let (ok, _, err) = run_with_outdir(
-            &["-c", path.to_str().unwrap(), "-o", "stl", "--quality", "low"],
+            &[
+                "-c",
+                path.to_str().unwrap(),
+                "-o",
+                "stl",
+                "--quality",
+                "low",
+            ],
             &[("-d", tmp.to_str().unwrap())],
         );
         assert!(ok, "prism fixture should compile: {err}");
@@ -365,7 +441,14 @@ fn compile_pyramid_fixture() {
         let tmp = std::env::temp_dir().join("polyhedra_pyramid_out");
         std::fs::create_dir_all(&tmp).ok();
         let (ok, _, err) = run_with_outdir(
-            &["-c", path.to_str().unwrap(), "-o", "stl", "--quality", "low"],
+            &[
+                "-c",
+                path.to_str().unwrap(),
+                "-o",
+                "stl",
+                "--quality",
+                "low",
+            ],
             &[("-d", tmp.to_str().unwrap())],
         );
         assert!(ok, "pyramid fixture should compile: {err}");
@@ -381,7 +464,14 @@ fn compile_define_with_fillet() {
         let tmp = std::env::temp_dir().join("polyhedra_fillet_out");
         std::fs::create_dir_all(&tmp).ok();
         let (ok, _, err) = run_with_outdir(
-            &["-c", path.to_str().unwrap(), "-o", "stl", "--quality", "low"],
+            &[
+                "-c",
+                path.to_str().unwrap(),
+                "-o",
+                "stl",
+                "--quality",
+                "low",
+            ],
             &[("-d", tmp.to_str().unwrap())],
         );
         assert!(ok, "define with fillet should compile: {err}");
@@ -397,7 +487,14 @@ fn compile_shell_manipulation() {
         let tmp = std::env::temp_dir().join("polyhedra_shell_out");
         std::fs::create_dir_all(&tmp).ok();
         let (ok, _, err) = run_with_outdir(
-            &["-c", path.to_str().unwrap(), "-o", "stl", "--quality", "low"],
+            &[
+                "-c",
+                path.to_str().unwrap(),
+                "-o",
+                "stl",
+                "--quality",
+                "low",
+            ],
             &[("-d", tmp.to_str().unwrap())],
         );
         assert!(ok, "shell manipulation should compile: {err}");
@@ -417,7 +514,14 @@ fn compile_assemble_union() {
         let tmp = std::env::temp_dir().join("polyhedra_assemble_out");
         std::fs::create_dir_all(&tmp).ok();
         let (ok, _, err) = run_with_outdir(
-            &["-c", path.to_str().unwrap(), "-o", "stl", "--quality", "low"],
+            &[
+                "-c",
+                path.to_str().unwrap(),
+                "-o",
+                "stl",
+                "--quality",
+                "low",
+            ],
             &[("-d", tmp.to_str().unwrap())],
         );
         assert!(ok, "assemble union should compile: {err}");
@@ -437,7 +541,14 @@ fn compile_assemble_cut() {
         let tmp = std::env::temp_dir().join("polyhedra_cut_out");
         std::fs::create_dir_all(&tmp).ok();
         let (ok, _, err) = run_with_outdir(
-            &["-c", path.to_str().unwrap(), "-o", "stl", "--quality", "low"],
+            &[
+                "-c",
+                path.to_str().unwrap(),
+                "-o",
+                "stl",
+                "--quality",
+                "low",
+            ],
             &[("-d", tmp.to_str().unwrap())],
         );
         assert!(ok, "assemble cut should compile: {err}");
@@ -470,11 +581,25 @@ fn quality_medium_produces_more_triangles_than_low() {
         std::fs::create_dir_all(&tmp_med).ok();
 
         let (ok1, _, _) = run_with_outdir(
-            &["-c", path.to_str().unwrap(), "-o", "stl", "--quality", "low"],
+            &[
+                "-c",
+                path.to_str().unwrap(),
+                "-o",
+                "stl",
+                "--quality",
+                "low",
+            ],
             &[("-d", tmp_low.to_str().unwrap())],
         );
         let (ok2, _, _) = run_with_outdir(
-            &["-c", path.to_str().unwrap(), "-o", "stl", "--quality", "medium"],
+            &[
+                "-c",
+                path.to_str().unwrap(),
+                "-o",
+                "stl",
+                "--quality",
+                "medium",
+            ],
             &[("-d", tmp_med.to_str().unwrap())],
         );
         assert!(ok1 && ok2, "both quality levels should succeed");
@@ -505,7 +630,14 @@ fn compile_hello_produces_valid_glb() {
     std::fs::create_dir_all(&tmp).ok();
 
     let (ok, _, err) = run_with_outdir(
-        &["-c", hello.to_str().unwrap(), "-o", "glb", "--quality", "low"],
+        &[
+            "-c",
+            hello.to_str().unwrap(),
+            "-o",
+            "glb",
+            "--quality",
+            "low",
+        ],
         &[("-d", tmp.to_str().unwrap())],
     );
     assert!(ok, "GLB compile should succeed: {err}");

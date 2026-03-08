@@ -1,12 +1,16 @@
 //! Integration tests for ConeSdf.
 
-use approx::assert_abs_diff_eq;
-use _core::sdf::primitives::ConeSdf;
 use _core::sdf::Sdf;
+use _core::sdf::primitives::ConeSdf;
+use approx::assert_abs_diff_eq;
 use glam::Vec3;
 
-fn pointed() -> ConeSdf { ConeSdf::new(5.0, 0.0, 10.0) }
-fn frustum() -> ConeSdf { ConeSdf::new(6.0, 3.0, 10.0) }
+fn pointed() -> ConeSdf {
+    ConeSdf::new(5.0, 0.0, 10.0)
+}
+fn frustum() -> ConeSdf {
+    ConeSdf::new(6.0, 3.0, 10.0)
+}
 
 // ── Interior ──────────────────────────────────────────────────────────────
 
@@ -56,22 +60,38 @@ fn frustum_top_rim_on_surface() {
 
 #[test]
 fn pointed_above_tip() {
-    assert_abs_diff_eq!(pointed().distance(Vec3::new(0.0, 0.0, 8.0)), 3.0, epsilon = 1e-4);
+    assert_abs_diff_eq!(
+        pointed().distance(Vec3::new(0.0, 0.0, 8.0)),
+        3.0,
+        epsilon = 1e-4
+    );
 }
 
 #[test]
 fn pointed_below_base() {
-    assert_abs_diff_eq!(pointed().distance(Vec3::new(0.0, 0.0, -9.0)), 4.0, epsilon = 1e-4);
+    assert_abs_diff_eq!(
+        pointed().distance(Vec3::new(0.0, 0.0, -9.0)),
+        4.0,
+        epsilon = 1e-4
+    );
 }
 
 #[test]
 fn frustum_above_top() {
-    assert_abs_diff_eq!(frustum().distance(Vec3::new(0.0, 0.0, 8.0)), 3.0, epsilon = 1e-4);
+    assert_abs_diff_eq!(
+        frustum().distance(Vec3::new(0.0, 0.0, 8.0)),
+        3.0,
+        epsilon = 1e-4
+    );
 }
 
 #[test]
 fn frustum_below_base() {
-    assert_abs_diff_eq!(frustum().distance(Vec3::new(0.0, 0.0, -8.0)), 3.0, epsilon = 1e-4);
+    assert_abs_diff_eq!(
+        frustum().distance(Vec3::new(0.0, 0.0, -8.0)),
+        3.0,
+        epsilon = 1e-4
+    );
 }
 
 // ── Shape-type mapping ────────────────────────────────────────────────────
@@ -96,12 +116,12 @@ fn cone_as_sdf_node() {
 
 #[test]
 fn cone_cut_from_cylinder() {
+    use _core::sdf::SdfNode;
     use _core::sdf::operations::DifferenceNode;
     use _core::sdf::primitives::CylinderSdf;
-    use _core::sdf::SdfNode;
 
     // Cylinder r=8, h=20, with a cone (base=6, top=0, h=22) drilled from top.
-    let cyl: SdfNode  = Box::new(CylinderSdf::new(8.0, 20.0));
+    let cyl: SdfNode = Box::new(CylinderSdf::new(8.0, 20.0));
     let cone: SdfNode = Box::new(ConeSdf::new(6.0, 0.0, 22.0));
     let result: SdfNode = Box::new(DifferenceNode { a: cyl, b: cone });
 

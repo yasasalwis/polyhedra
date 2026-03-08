@@ -20,13 +20,13 @@ pub const FT: f32 = 304.8;
 /// Does not panic — unknown units are returned unchanged (treated as mm).
 pub fn to_mm(value: f32, unit: &str) -> f32 {
     match unit {
-        "mm"      => value * MM,
-        "cm"      => value * CM,
-        "m"       => value * M,
-        "in"      => value * IN,
-        "ft"      => value * FT,
-        "degrees" => value,          // angular — caller handles
-        _         => value,          // default: treat as mm
+        "mm" => value * MM,
+        "cm" => value * CM,
+        "m" => value * M,
+        "in" => value * IN,
+        "ft" => value * FT,
+        "degrees" => value, // angular — caller handles
+        _ => value,         // default: treat as mm
     }
 }
 
@@ -35,10 +35,10 @@ pub fn from_mm(value_mm: f32, unit: &str) -> f32 {
     match unit {
         "mm" => value_mm / MM,
         "cm" => value_mm / CM,
-        "m"  => value_mm / M,
+        "m" => value_mm / M,
         "in" => value_mm / IN,
         "ft" => value_mm / FT,
-        _    => value_mm,
+        _ => value_mm,
     }
 }
 
@@ -49,13 +49,13 @@ pub fn from_mm(value_mm: f32, unit: &str) -> f32 {
 /// variable values.
 pub fn apply_arithmetic(base: f32, op: &str, operand: f32) -> f32 {
     match op {
-        "twice"  => base * 2.0,
-        "half"   => base / 2.0,
-        "plus"   => base + operand,
-        "minus"  => base - operand,
-        "times"  => base * operand,
+        "twice" => base * 2.0,
+        "half" => base / 2.0,
+        "plus" => base + operand,
+        "minus" => base - operand,
+        "times" => base * operand,
         "divide" => base / operand,
-        _        => base,
+        _ => base,
     }
 }
 

@@ -17,4 +17,4 @@
 pub mod dc;
 pub mod qef;
 
-pub use dc::{mesh, Mesh, MeshConfig};
+pub use dc::{Mesh, MeshConfig, mesh};

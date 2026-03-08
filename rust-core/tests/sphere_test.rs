@@ -1,11 +1,13 @@
 //! Integration tests for SphereSdf.
 
-use approx::assert_abs_diff_eq;
-use _core::sdf::primitives::SphereSdf;
 use _core::sdf::Sdf;
+use _core::sdf::primitives::SphereSdf;
+use approx::assert_abs_diff_eq;
 use glam::Vec3;
 
-fn sphere() -> SphereSdf { SphereSdf::new(5.0) }
+fn sphere() -> SphereSdf {
+    SphereSdf::new(5.0)
+}
 
 // ── Interior ──────────────────────────────────────────────────────────────
 
@@ -25,12 +27,12 @@ fn sphere_center_distance() {
 fn sphere_surface_on_axes() {
     let s = sphere();
     for p in [
-        Vec3::new( 5.0,  0.0,  0.0),
-        Vec3::new(-5.0,  0.0,  0.0),
-        Vec3::new( 0.0,  5.0,  0.0),
-        Vec3::new( 0.0, -5.0,  0.0),
-        Vec3::new( 0.0,  0.0,  5.0),
-        Vec3::new( 0.0,  0.0, -5.0),
+        Vec3::new(5.0, 0.0, 0.0),
+        Vec3::new(-5.0, 0.0, 0.0),
+        Vec3::new(0.0, 5.0, 0.0),
+        Vec3::new(0.0, -5.0, 0.0),
+        Vec3::new(0.0, 0.0, 5.0),
+        Vec3::new(0.0, 0.0, -5.0),
     ] {
         let d = s.distance(p);
         assert!(d.abs() < 1e-5, "{p:?}: expected ~0, got {d}");
@@ -47,7 +49,11 @@ fn sphere_surface_on_diagonal() {
 
 #[test]
 fn sphere_outside_distance() {
-    assert_abs_diff_eq!(sphere().distance(Vec3::new(8.0, 0.0, 0.0)), 3.0, epsilon = 1e-5);
+    assert_abs_diff_eq!(
+        sphere().distance(Vec3::new(8.0, 0.0, 0.0)),
+        3.0,
+        epsilon = 1e-5
+    );
 }
 
 #[test]
@@ -87,13 +93,17 @@ fn sphere_as_sdf_node() {
 
 #[test]
 fn sphere_smooth_union_with_cube() {
+    use _core::sdf::SdfNode;
     use _core::sdf::operations::SmoothUnionNode;
     use _core::sdf::primitives::CubeSdf;
-    use _core::sdf::SdfNode;
 
-    let cube: SdfNode   = Box::new(CubeSdf::new(10.0, 10.0, 10.0));
+    let cube: SdfNode = Box::new(CubeSdf::new(10.0, 10.0, 10.0));
     let sphere: SdfNode = Box::new(SphereSdf::new(4.0));
-    let blended: SdfNode = Box::new(SmoothUnionNode { a: cube, b: sphere, k: 2.0 });
+    let blended: SdfNode = Box::new(SmoothUnionNode {
+        a: cube,
+        b: sphere,
+        k: 2.0,
+    });
 
     // Both origins are at (0,0,0) — point is inside both → inside result.
     assert!(blended.distance(Vec3::ZERO) < 0.0);
@@ -105,14 +115,14 @@ fn sphere_smooth_union_with_cube() {
 
 #[test]
 fn sphere_intersect_cube_clips_corners() {
+    use _core::sdf::SdfNode;
     use _core::sdf::operations::IntersectionNode;
     use _core::sdf::primitives::CubeSdf;
-    use _core::sdf::SdfNode;
 
     // r=8 sphere intersected with a 10×10×10 cube.
     // The sphere corners (beyond r=5 along the diagonal) get clipped.
     let sphere: SdfNode = Box::new(SphereSdf::new(8.0));
-    let cube: SdfNode   = Box::new(CubeSdf::new(10.0, 10.0, 10.0));
+    let cube: SdfNode = Box::new(CubeSdf::new(10.0, 10.0, 10.0));
     let clipped: SdfNode = Box::new(IntersectionNode { a: sphere, b: cube });
 
     // At origin: inside both → inside intersection.

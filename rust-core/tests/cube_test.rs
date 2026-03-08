@@ -3,9 +3,9 @@
 //! Tests the public API as a downstream user of the crate would — through
 //! `_core::sdf::primitives::CubeSdf` and the `Sdf` trait.
 
-use approx::assert_abs_diff_eq;
-use _core::sdf::primitives::CubeSdf;
 use _core::sdf::Sdf;
+use _core::sdf::primitives::CubeSdf;
+use approx::assert_abs_diff_eq;
 use glam::Vec3;
 
 // ── Distance correctness ───────────────────────────────────────────────────
@@ -27,12 +27,12 @@ fn cube_center_is_negative_half_min_extent() {
 fn cube_face_centers_are_on_surface() {
     let c = CubeSdf::new(10.0, 10.0, 10.0);
     for face in [
-        Vec3::new( 5.0,  0.0,  0.0),
-        Vec3::new(-5.0,  0.0,  0.0),
-        Vec3::new( 0.0,  5.0,  0.0),
-        Vec3::new( 0.0, -5.0,  0.0),
-        Vec3::new( 0.0,  0.0,  5.0),
-        Vec3::new( 0.0,  0.0, -5.0),
+        Vec3::new(5.0, 0.0, 0.0),
+        Vec3::new(-5.0, 0.0, 0.0),
+        Vec3::new(0.0, 5.0, 0.0),
+        Vec3::new(0.0, -5.0, 0.0),
+        Vec3::new(0.0, 0.0, 5.0),
+        Vec3::new(0.0, 0.0, -5.0),
     ] {
         let d = c.distance(face);
         assert!(d.abs() < 1e-5, "face point {face:?}: expected 0, got {d}");
@@ -70,8 +70,8 @@ fn non_uniform_box_face_surfaces() {
     // 20 × 10 × 5 box.
     let b = CubeSdf::new(20.0, 10.0, 5.0);
     assert_abs_diff_eq!(b.distance(Vec3::new(10.0, 0.0, 0.0)), 0.0, epsilon = 1e-5);
-    assert_abs_diff_eq!(b.distance(Vec3::new( 0.0, 5.0, 0.0)), 0.0, epsilon = 1e-5);
-    assert_abs_diff_eq!(b.distance(Vec3::new( 0.0, 0.0, 2.5)), 0.0, epsilon = 1e-5);
+    assert_abs_diff_eq!(b.distance(Vec3::new(0.0, 5.0, 0.0)), 0.0, epsilon = 1e-5);
+    assert_abs_diff_eq!(b.distance(Vec3::new(0.0, 0.0, 2.5)), 0.0, epsilon = 1e-5);
 }
 
 #[test]
@@ -93,7 +93,10 @@ fn shape_type_cube_id_is_zero() {
 fn shape_type_all_ids_convert() {
     use _core::shape_type::ShapeType;
     for id in 0u32..=6 {
-        assert!(ShapeType::try_from(id).is_ok(), "id {id} should be a valid ShapeType");
+        assert!(
+            ShapeType::try_from(id).is_ok(),
+            "id {id} should be a valid ShapeType"
+        );
     }
 }
 
@@ -117,15 +120,15 @@ fn cube_as_boxed_sdf_node() {
 
 #[test]
 fn union_of_two_cubes_covers_both_interiors() {
+    use _core::sdf::SdfNode;
     use _core::sdf::operations::UnionNode;
     use _core::sdf::transform::Translate;
-    use _core::sdf::SdfNode;
 
     let a: SdfNode = Box::new(CubeSdf::new(10.0, 10.0, 10.0));
     let b: SdfNode = Box::new(CubeSdf::new(10.0, 10.0, 10.0));
     // Shift b by 8 mm on X so they overlap.
     let b_shifted: SdfNode = Box::new(Translate {
-        inner:  b,
+        inner: b,
         offset: Vec3::new(8.0, 0.0, 0.0),
     });
     let union_node: SdfNode = Box::new(UnionNode { a, b: b_shifted });

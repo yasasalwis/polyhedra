@@ -44,7 +44,8 @@ fn unit_round_trip_cm() {
 fn arithmetic_twice() {
     assert_abs_diff_eq!(
         _core::units::apply_arithmetic(10.0, "twice", 0.0),
-        20.0, epsilon = 1e-4
+        20.0,
+        epsilon = 1e-4
     );
 }
 
@@ -52,7 +53,8 @@ fn arithmetic_twice() {
 fn arithmetic_half() {
     assert_abs_diff_eq!(
         _core::units::apply_arithmetic(10.0, "half", 0.0),
-        5.0, epsilon = 1e-4
+        5.0,
+        epsilon = 1e-4
     );
 }
 
@@ -71,7 +73,10 @@ fn sdf_difference_cuts_b_from_a() {
     // Inside A (a=-1), inside B (b=-2) → the point IS inside B, so cut → positive
     let a = -1.0_f32;
     let b = -2.0_f32;
-    assert!(difference(a, b) > 0.0, "point inside both should be cut out");
+    assert!(
+        difference(a, b) > 0.0,
+        "point inside both should be cut out"
+    );
 }
 
 #[test]
@@ -93,7 +98,10 @@ fn sdf_smooth_min_blends_at_surface() {
     use _core::sdf::operations::smooth_min;
     // At the surface junction (both = 0), smooth_min dips below 0 — the fillet.
     let result = smooth_min(0.0, 0.0, 4.0);
-    assert!(result < 0.0, "smooth_min at equal-zero surfaces should give negative (fillet dip)");
+    assert!(
+        result < 0.0,
+        "smooth_min at equal-zero surfaces should give negative (fillet dip)"
+    );
 }
 
 #[test]
@@ -124,7 +132,7 @@ fn transform_translate_roundtrip() {
     let offset = Vec3::new(5.0, -3.0, 10.0);
     let t = Transform::from_translation(offset);
     let p = Vec3::new(1.0, 1.0, 1.0);
-    let moved   = t.transform_point(p);
+    let moved = t.transform_point(p);
     let restored = t.inverse_transform_point(moved);
     assert_abs_diff_eq!(restored.x, p.x, epsilon = 1e-4);
     assert_abs_diff_eq!(restored.y, p.y, epsilon = 1e-4);

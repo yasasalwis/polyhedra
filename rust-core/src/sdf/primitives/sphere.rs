@@ -58,7 +58,9 @@ mod tests {
     use super::*;
     use approx::assert_abs_diff_eq;
 
-    fn sphere() -> SphereSdf { SphereSdf::new(5.0) }
+    fn sphere() -> SphereSdf {
+        SphereSdf::new(5.0)
+    }
 
     #[test]
     fn center_is_inside() {
@@ -74,12 +76,12 @@ mod tests {
     fn surface_is_zero_on_all_axes() {
         let s = sphere();
         for p in [
-            Vec3::new( 5.0,  0.0,  0.0),
-            Vec3::new(-5.0,  0.0,  0.0),
-            Vec3::new( 0.0,  5.0,  0.0),
-            Vec3::new( 0.0, -5.0,  0.0),
-            Vec3::new( 0.0,  0.0,  5.0),
-            Vec3::new( 0.0,  0.0, -5.0),
+            Vec3::new(5.0, 0.0, 0.0),
+            Vec3::new(-5.0, 0.0, 0.0),
+            Vec3::new(0.0, 5.0, 0.0),
+            Vec3::new(0.0, -5.0, 0.0),
+            Vec3::new(0.0, 0.0, 5.0),
+            Vec3::new(0.0, 0.0, -5.0),
         ] {
             let d = s.distance(p);
             assert!(d.abs() < 1e-5, "{p:?}: expected ~0, got {d}");
@@ -97,13 +99,21 @@ mod tests {
     #[test]
     fn outside_is_positive() {
         // 3 mm past the surface along +X.
-        assert_abs_diff_eq!(sphere().distance(Vec3::new(8.0, 0.0, 0.0)), 3.0, epsilon = 1e-5);
+        assert_abs_diff_eq!(
+            sphere().distance(Vec3::new(8.0, 0.0, 0.0)),
+            3.0,
+            epsilon = 1e-5
+        );
     }
 
     #[test]
     fn inside_near_surface_is_negative() {
         // 1 mm inside the surface along +X.
-        assert_abs_diff_eq!(sphere().distance(Vec3::new(4.0, 0.0, 0.0)), -1.0, epsilon = 1e-5);
+        assert_abs_diff_eq!(
+            sphere().distance(Vec3::new(4.0, 0.0, 0.0)),
+            -1.0,
+            epsilon = 1e-5
+        );
     }
 
     #[test]

@@ -14,12 +14,12 @@ use glam::Vec3;
 
 use crate::error::{PolyhedraError, Result};
 use crate::manipulations::{OffsetNode, ShellNode};
-use crate::sdf::operations::{DifferenceNode, IntersectionNode, UnionNode};
-use crate::sdf::transform::Translate;
 use crate::sdf::SdfNode;
+use crate::sdf::operations::{DifferenceNode, IntersectionNode, UnionNode};
 use crate::sdf::primitives::{
     ConeSdf, CubeSdf, CylinderSdf, PrismSdf, PyramidSdf, SphereSdf, TorusSdf,
 };
+use crate::sdf::transform::Translate;
 
 use super::ast::*;
 
@@ -36,9 +36,17 @@ fn unit_scale(u: Unit) -> f32 {
 /// `parent_scale` is the unit scale inherited from an outer scope (usually 1.0
 /// for mm, or the scale from a wrapping `assemble` block).
 pub fn eval_define(block: &DefineBlock, parent_scale: f32) -> Result<(SdfNode, f32)> {
-    let scale = block.items.iter().find_map(|i| {
-        if let DefineItem::Units(u) = i { Some(unit_scale(*u)) } else { None }
-    }).unwrap_or(parent_scale);
+    let scale = block
+        .items
+        .iter()
+        .find_map(|i| {
+            if let DefineItem::Units(u) = i {
+                Some(unit_scale(*u))
+            } else {
+                None
+            }
+        })
+        .unwrap_or(parent_scale);
 
     // Collect all primitive nodes.
     let mut prims: Vec<(SdfNode, f32)> = Vec::new();
@@ -81,9 +89,17 @@ pub fn eval_assemble(
     defines: &HashMap<String, &DefineBlock>,
     parent_scale: f32,
 ) -> Result<(SdfNode, f32)> {
-    let scale = block.items.iter().find_map(|i| {
-        if let AssembleItem::Units(u) = i { Some(unit_scale(*u)) } else { None }
-    }).unwrap_or(parent_scale);
+    let scale = block
+        .items
+        .iter()
+        .find_map(|i| {
+            if let AssembleItem::Units(u) = i {
+                Some(unit_scale(*u))
+            } else {
+                None
+            }
+        })
+        .unwrap_or(parent_scale);
 
     let mut result: Option<(SdfNode, f32)> = None;
 
@@ -91,44 +107,42 @@ pub fn eval_assemble(
         let AssembleItem::Op(op) = item else { continue };
 
         let name = match op {
-            AssembleOp::Place { name, .. }     => name,
-            AssembleOp::Cut   { name, .. }     => name,
-            AssembleOp::Join      { name, .. } => name,
+            AssembleOp::Place { name, .. } => name,
+            AssembleOp::Cut { name, .. } => name,
+            AssembleOp::Join { name, .. } => name,
             AssembleOp::Intersect { name, .. } => name,
-            AssembleOp::Subtract  { name, .. } => name,
+            AssembleOp::Subtract { name, .. } => name,
         };
 
-        let def = defines.get(name.as_str()).ok_or_else(|| {
-            PolyhedraError::GeometryError {
-                message: format!(
-                    "assemble '{}': object '{name}' is not defined",
-                    block.name
-                ),
-            }
-        })?;
+        let def = defines
+            .get(name.as_str())
+            .ok_or_else(|| PolyhedraError::GeometryError {
+                message: format!("assemble '{}': object '{name}' is not defined", block.name),
+            })?;
 
         let (mut node, b) = eval_define(def, scale)?;
 
         // Apply translation.
         let at = match op {
-            AssembleOp::Place     { at, .. } => at,
-            AssembleOp::Cut       { at, .. } => at,
-            AssembleOp::Join      { at, .. } => at,
+            AssembleOp::Place { at, .. } => at,
+            AssembleOp::Cut { at, .. } => at,
+            AssembleOp::Join { at, .. } => at,
             AssembleOp::Intersect { at, .. } => at,
-            AssembleOp::Subtract  { at, .. } => at,
+            AssembleOp::Subtract { at, .. } => at,
         };
         if let Position::Coords(x, y, z) = at {
             let offset = Vec3::new(*x, *y, *z) * scale;
             if offset != Vec3::ZERO {
-                node = Box::new(Translate { inner: node, offset });
+                node = Box::new(Translate {
+                    inner: node,
+                    offset,
+                });
             }
         }
 
         let bounds = b + match at {
             Position::Origin => 0.0,
-            Position::Coords(x, y, z) => {
-                Vec3::new(*x * scale, *y * scale, *z * scale).length()
-            }
+            Position::Coords(x, y, z) => Vec3::new(*x * scale, *y * scale, *z * scale).length(),
         };
 
         result = Some(match result {
@@ -142,9 +156,7 @@ pub fn eval_assemble(
                     AssembleOp::Cut { .. } | AssembleOp::Subtract { .. } => {
                         Box::new(DifferenceNode { a: acc, b: node })
                     }
-                    AssembleOp::Intersect { .. } => {
-                        Box::new(IntersectionNode { a: acc, b: node })
-                    }
+                    AssembleOp::Intersect { .. } => Box::new(IntersectionNode { a: acc, b: node }),
                 };
                 (combined, new_bounds)
             }
@@ -167,32 +179,28 @@ pub fn eval_assemble(
 }
 
 /// Convenience: parse `path` and evaluate the first `define` block.
-pub fn eval_file_first_define(
-    path: impl AsRef<std::path::Path>,
-) -> Result<(SdfNode, f32)> {
+pub fn eval_file_first_define(path: impl AsRef<std::path::Path>) -> Result<(SdfNode, f32)> {
     let file = super::parse_file(path)?;
-    let def  = file.defines().next().ok_or_else(|| {
-        PolyhedraError::GeometryError {
+    let def = file
+        .defines()
+        .next()
+        .ok_or_else(|| PolyhedraError::GeometryError {
             message: "file contains no 'define' block".into(),
-        }
-    })?;
+        })?;
     eval_define(def, 1.0)
 }
 
 /// Convenience: parse `path` and evaluate the first `assemble` block.
-pub fn eval_file_first_assemble(
-    path: impl AsRef<std::path::Path>,
-) -> Result<(SdfNode, f32)> {
+pub fn eval_file_first_assemble(path: impl AsRef<std::path::Path>) -> Result<(SdfNode, f32)> {
     let file = super::parse_file(path)?;
-    let defines: HashMap<String, &DefineBlock> = file
-        .defines()
-        .map(|d| (d.name.clone(), d))
-        .collect();
-    let asm = file.assemblies().next().ok_or_else(|| {
-        PolyhedraError::GeometryError {
+    let defines: HashMap<String, &DefineBlock> =
+        file.defines().map(|d| (d.name.clone(), d)).collect();
+    let asm = file
+        .assemblies()
+        .next()
+        .ok_or_else(|| PolyhedraError::GeometryError {
             message: "file contains no 'assemble' block".into(),
-        }
-    })?;
+        })?;
     eval_assemble(asm, &defines, 1.0)
 }
 
@@ -200,14 +208,16 @@ pub fn eval_file_first_assemble(
 
 fn eval_primitive(p: &PrimitiveBlock, parent_scale: f32) -> Result<(SdfNode, f32)> {
     let scale = p.units.map(unit_scale).unwrap_or(parent_scale);
-    let prop  = |key: &str, fallback: f32| -> f32 {
-        p.props.iter()
+    let prop = |key: &str, fallback: f32| -> f32 {
+        p.props
+            .iter()
             .find(|pr| pr.key == key)
             .map(|pr| pr.value * scale)
             .unwrap_or(fallback * scale)
     };
     let prop2 = |k1: &str, k2: &str, fb: f32| -> f32 {
-        p.props.iter()
+        p.props
+            .iter()
             .find(|pr| pr.key == k1 || pr.key == k2)
             .map(|pr| pr.value * scale)
             .unwrap_or(fb * scale)
@@ -215,8 +225,8 @@ fn eval_primitive(p: &PrimitiveBlock, parent_scale: f32) -> Result<(SdfNode, f32
 
     let (node, bounds): (SdfNode, f32) = match p.kind {
         PrimKind::Cube => {
-            let w = prop("width",  10.0);
-            let d = prop("depth",  w / scale);
+            let w = prop("width", 10.0);
+            let d = prop("depth", w / scale);
             let h = prop("height", w / scale);
             let node: SdfNode = Box::new(CubeSdf::new(w, d, h));
             (node, w.max(d).max(h) * 0.56)
@@ -232,28 +242,33 @@ fn eval_primitive(p: &PrimitiveBlock, parent_scale: f32) -> Result<(SdfNode, f32
         }
         PrimKind::Cone => {
             let br = prop2("base_radius", "radius", 5.0);
-            let tr = prop2("top_radius",  "top",    0.0);
-            let h  = prop("height", 10.0);
+            let tr = prop2("top_radius", "top", 0.0);
+            let h = prop("height", 10.0);
             (Box::new(ConeSdf::new(br, tr, h)), br.max(h * 0.5) * 1.1)
         }
         PrimKind::Torus => {
             let major = prop2("major", "major_radius", 10.0);
-            let minor = prop2("minor", "minor_radius",  2.0);
+            let minor = prop2("minor", "minor_radius", 2.0);
             (Box::new(TorusSdf::new(major, minor)), (major + minor) * 1.1)
         }
         PrimKind::Pyramid => {
-            let bw = prop2("base_width",  "base",  10.0);
-            let bd = prop("base_depth",   bw / scale);
-            let h  = prop("height", 10.0);
-            (Box::new(PyramidSdf::new(bw, bd, h)), bw.max(bd).max(h) * 0.6)
+            let bw = prop2("base_width", "base", 10.0);
+            let bd = prop("base_depth", bw / scale);
+            let h = prop("height", 10.0);
+            (
+                Box::new(PyramidSdf::new(bw, bd, h)),
+                bw.max(bd).max(h) * 0.6,
+            )
         }
         PrimKind::Prism => {
-            let sides = p.props.iter()
+            let sides = p
+                .props
+                .iter()
                 .find(|pr| pr.key == "sides" || pr.key == "n")
                 .map(|pr| pr.value as u32)
                 .unwrap_or(6);
-            let ftf   = prop2("flat_to_flat", "radius", 10.0);
-            let h     = prop("height", 10.0);
+            let ftf = prop2("flat_to_flat", "radius", 10.0);
+            let h = prop("height", 10.0);
             (Box::new(PrismSdf::new(sides, ftf, h)), ftf.max(h) * 0.56)
         }
     };
@@ -267,7 +282,10 @@ fn eval_primitive(p: &PrimitiveBlock, parent_scale: f32) -> Result<(SdfNode, f32
             Axis::Y => Vec3::new(0.0, v, 0.0),
             Axis::Z => Vec3::new(0.0, 0.0, v),
         };
-        node = Box::new(Translate { inner: node, offset });
+        node = Box::new(Translate {
+            inner: node,
+            offset,
+        });
     }
 
     Ok((node, bounds))
@@ -275,25 +293,38 @@ fn eval_primitive(p: &PrimitiveBlock, parent_scale: f32) -> Result<(SdfNode, f32
 
 // ── Manipulation applier ───────────────────────────────────────────────────────
 
-fn apply_manip(
-    node:   SdfNode,
-    bounds: f32,
-    m:      &Manipulation,
-    scale:  f32,
-) -> (SdfNode, f32) {
+fn apply_manip(node: SdfNode, bounds: f32, m: &Manipulation, scale: f32) -> (SdfNode, f32) {
     match m {
         Manipulation::Chamfer(r) | Manipulation::Fillet(r) => {
             let r = r * scale;
-            (Box::new(OffsetNode { inner: node, offset: r }), bounds + r)
+            (
+                Box::new(OffsetNode {
+                    inner: node,
+                    offset: r,
+                }),
+                bounds + r,
+            )
         }
         Manipulation::Shell(t) => {
             let t = t * scale;
-            (Box::new(ShellNode { inner: node, thickness: t }), bounds)
+            (
+                Box::new(ShellNode {
+                    inner: node,
+                    thickness: t,
+                }),
+                bounds,
+            )
         }
         Manipulation::Hole { diameter, .. } => {
             // Approximate: shell with half the diameter as thickness.
             let t = (diameter * scale) * 0.5;
-            (Box::new(ShellNode { inner: node, thickness: t }), bounds)
+            (
+                Box::new(ShellNode {
+                    inner: node,
+                    thickness: t,
+                }),
+                bounds,
+            )
         }
         Manipulation::Thread { .. } | Manipulation::Pattern { .. } => {
             // Not yet implemented at the SDF level; pass through unchanged.

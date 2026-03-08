@@ -18,13 +18,13 @@ pub mod shape_type;
 pub mod units;
 
 // ── Phases 2+ modules (stubs added per phase) ─────────────────────────────
-pub mod parser;
 pub mod manipulations;
+pub mod parser;
 pub mod sketch;
 // pub mod construction;
 // pub mod assembly;
-pub mod mesher;
 pub mod export;
+pub mod mesher;
 
 // ── Python extension module ────────────────────────────────────────────────
 #[cfg(feature = "python")]

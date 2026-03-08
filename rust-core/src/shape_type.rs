@@ -12,13 +12,13 @@ use crate::error::PolyhedraError;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u32)]
 pub enum ShapeType {
-    Cube     = 0,
+    Cube = 0,
     Cylinder = 1,
-    Sphere   = 2,
-    Cone     = 3,
-    Torus    = 4,
-    Pyramid  = 5,
-    Prism    = 6,
+    Sphere = 2,
+    Cone = 3,
+    Torus = 4,
+    Pyramid = 5,
+    Prism = 6,
 }
 
 impl TryFrom<u32> for ShapeType {

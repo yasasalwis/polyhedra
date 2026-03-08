@@ -33,15 +33,18 @@ use crate::sdf::Sdf;
 /// The torus has an inner radius of `R - r` and an outer radius of `R + r`.
 /// It requires `R > r > 0` for a non-degenerate shape.
 pub struct TorusSdf {
-    major_radius: f32,  // R
-    minor_radius: f32,  // r
+    major_radius: f32, // R
+    minor_radius: f32, // r
 }
 
 impl TorusSdf {
     /// Create from major radius `R` and minor radius `r`.
     #[inline]
     pub fn new(major_radius: f32, minor_radius: f32) -> Self {
-        Self { major_radius, minor_radius }
+        Self {
+            major_radius,
+            minor_radius,
+        }
     }
 
     /// Return `(major_radius, minor_radius)`.
@@ -71,10 +74,7 @@ impl Sdf for TorusSdf {
     fn distance(&self, p: Vec3) -> f32 {
         // Radial distance in XY, offset by major radius — gives the nearest
         // point on the ring circle projected into a 1-D value.
-        let q = Vec2::new(
-            Vec2::new(p.x, p.y).length() - self.major_radius,
-            p.z,
-        );
+        let q = Vec2::new(Vec2::new(p.x, p.y).length() - self.major_radius, p.z);
         q.length() - self.minor_radius
     }
 
@@ -102,7 +102,9 @@ mod tests {
     use approx::assert_abs_diff_eq;
 
     /// R=5, r=2.  Inner radius=3, outer=7, tube centre at (5,0,0).
-    fn torus() -> TorusSdf { TorusSdf::new(5.0, 2.0) }
+    fn torus() -> TorusSdf {
+        TorusSdf::new(5.0, 2.0)
+    }
 
     // ── Accessors ─────────────────────────────────────────────────────────
 
@@ -137,7 +139,11 @@ mod tests {
     fn tube_centre_is_inside() {
         // Tube centre is at (R, 0, 0) = (5, 0, 0).
         // d = length((5-5, 0)) - 2 = 0 - 2 = -2.
-        assert_abs_diff_eq!(torus().distance(Vec3::new(5.0, 0.0, 0.0)), -2.0, epsilon = 1e-5);
+        assert_abs_diff_eq!(
+            torus().distance(Vec3::new(5.0, 0.0, 0.0)),
+            -2.0,
+            epsilon = 1e-5
+        );
     }
 
     // ── Surface points ─────────────────────────────────────────────────────
@@ -145,24 +151,40 @@ mod tests {
     #[test]
     fn outer_surface_is_zero() {
         // Outermost point: (R+r, 0, 0) = (7, 0, 0).
-        assert_abs_diff_eq!(torus().distance(Vec3::new(7.0, 0.0, 0.0)), 0.0, epsilon = 1e-5);
+        assert_abs_diff_eq!(
+            torus().distance(Vec3::new(7.0, 0.0, 0.0)),
+            0.0,
+            epsilon = 1e-5
+        );
     }
 
     #[test]
     fn inner_surface_is_zero() {
         // Innermost point: (R-r, 0, 0) = (3, 0, 0).
-        assert_abs_diff_eq!(torus().distance(Vec3::new(3.0, 0.0, 0.0)), 0.0, epsilon = 1e-5);
+        assert_abs_diff_eq!(
+            torus().distance(Vec3::new(3.0, 0.0, 0.0)),
+            0.0,
+            epsilon = 1e-5
+        );
     }
 
     #[test]
     fn top_of_tube_is_zero() {
         // Top of tube (along +Z from tube centre): (R, 0, r) = (5, 0, 2).
-        assert_abs_diff_eq!(torus().distance(Vec3::new(5.0, 0.0, 2.0)), 0.0, epsilon = 1e-5);
+        assert_abs_diff_eq!(
+            torus().distance(Vec3::new(5.0, 0.0, 2.0)),
+            0.0,
+            epsilon = 1e-5
+        );
     }
 
     #[test]
     fn bottom_of_tube_is_zero() {
-        assert_abs_diff_eq!(torus().distance(Vec3::new(5.0, 0.0, -2.0)), 0.0, epsilon = 1e-5);
+        assert_abs_diff_eq!(
+            torus().distance(Vec3::new(5.0, 0.0, -2.0)),
+            0.0,
+            epsilon = 1e-5
+        );
     }
 
     #[test]
@@ -171,11 +193,7 @@ mod tests {
         let t = torus();
         for angle_deg in [0.0_f32, 45.0, 90.0, 135.0, 180.0, 270.0] {
             let angle = angle_deg.to_radians();
-            let p = Vec3::new(
-                (5.0 + 2.0) * angle.cos(),
-                (5.0 + 2.0) * angle.sin(),
-                0.0,
-            );
+            let p = Vec3::new((5.0 + 2.0) * angle.cos(), (5.0 + 2.0) * angle.sin(), 0.0);
             let d = t.distance(p);
             assert!(d.abs() < 1e-5, "angle {angle_deg}°: expected ~0, got {d}");
         }
@@ -186,13 +204,21 @@ mod tests {
     #[test]
     fn outside_above_tube_is_positive() {
         // 3 mm above the top of the tube: (5, 0, 5) → d = length((0,5)) - 2 = 3.
-        assert_abs_diff_eq!(torus().distance(Vec3::new(5.0, 0.0, 5.0)), 3.0, epsilon = 1e-5);
+        assert_abs_diff_eq!(
+            torus().distance(Vec3::new(5.0, 0.0, 5.0)),
+            3.0,
+            epsilon = 1e-5
+        );
     }
 
     #[test]
     fn outside_past_outer_rim_is_positive() {
         // 2 mm past the outer surface: (9, 0, 0) → d = length((4,0)) - 2 = 2.
-        assert_abs_diff_eq!(torus().distance(Vec3::new(9.0, 0.0, 0.0)), 2.0, epsilon = 1e-5);
+        assert_abs_diff_eq!(
+            torus().distance(Vec3::new(9.0, 0.0, 0.0)),
+            2.0,
+            epsilon = 1e-5
+        );
     }
 
     // ── Normal ────────────────────────────────────────────────────────────
@@ -218,8 +244,8 @@ mod tests {
         // Inner surface at (3, 0, 0): normal should point in -X direction.
         let n = torus().normal(Vec3::new(3.0, 0.0, 0.0));
         assert_abs_diff_eq!(n.x, -1.0, epsilon = 1e-4);
-        assert_abs_diff_eq!(n.y,  0.0, epsilon = 1e-4);
-        assert_abs_diff_eq!(n.z,  0.0, epsilon = 1e-4);
+        assert_abs_diff_eq!(n.y, 0.0, epsilon = 1e-4);
+        assert_abs_diff_eq!(n.z, 0.0, epsilon = 1e-4);
     }
 
     // ── Trait object ──────────────────────────────────────────────────────
