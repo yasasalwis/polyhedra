@@ -84,23 +84,23 @@ struct Cli {
 
 #[derive(ValueEnum, Clone, Debug)]
 enum Quality {
-    /// Fast preview — 16 voxels per axis.
+    /// Fast preview — 32 voxels per axis.
     Low,
-    /// Balanced quality — 32 voxels per axis (default).
+    /// Balanced quality — 64 voxels per axis (default).
     Medium,
-    /// High quality — 64 voxels per axis.
+    /// High quality — 128 voxels per axis.
     High,
-    /// Ultra — 128 voxels per axis (slow on large models).
+    /// Ultra — 256 voxels per axis (slow on large models).
     Ultra,
 }
 
 impl Quality {
     fn resolution(&self) -> u32 {
         match self {
-            Quality::Low => 16,
-            Quality::Medium => 32,
-            Quality::High => 64,
-            Quality::Ultra => 128,
+            Quality::Low => 32,
+            Quality::Medium => 64,
+            Quality::High => 128,
+            Quality::Ultra => 256,
         }
     }
 }
