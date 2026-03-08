@@ -72,10 +72,10 @@ impl Sdf for GearSdf {
         let dist_from_center = (angle - sector * 0.5).abs();
 
         // Choose the boundary radius based on tooth vs. gap.
-        let r_tip  = self.pitch_radius + self.tooth_height * 0.5;
+        let r_tip = self.pitch_radius + self.tooth_height * 0.5;
         let r_root = self.pitch_radius - self.tooth_height * 0.5;
         let r_boundary = if dist_from_center < half_tooth_arc {
-            r_tip  // inside a tooth
+            r_tip // inside a tooth
         } else {
             r_root // inside a gap
         };

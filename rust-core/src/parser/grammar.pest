@@ -62,11 +62,17 @@ manipulation = {
 // ── Primitive blocks ───────────────────────────────────────────────────────────
 
 prim_kw = {
-    "cube" | "sphere" | "cylinder" | "cone" |
-    "torus" | "pyramid" | "prism" | "gear"
+    "cube"      | "sphere"    | "cylinder"  | "cone"     |
+    "torus"     | "pyramid"   | "prism"     | "gear"     |
+    "thread"    | "spring"    | "knurl"     | "spline"   |
+    "i_beam"    | "t_slot"    | "rack"      | "sprocket" |
+    "bearing"   | "cam"       | "dovetail"  | "csk_hole" |
+    "hex_bolt"  | "star"      | "cross"
 }
 
-prim_body_item = { units_stmt | prop_stmt | move_stmt }
+style_stmt = { "style" ~ ident }
+
+prim_body_item = { units_stmt | style_stmt | prop_stmt | move_stmt }
 
 primitive_block = {
     prim_kw ~

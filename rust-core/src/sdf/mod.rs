@@ -10,6 +10,7 @@
 //! the distance values — no mesh manipulation required.
 
 pub mod operations;
+pub mod parts;
 pub mod primitives;
 pub mod transform;
 

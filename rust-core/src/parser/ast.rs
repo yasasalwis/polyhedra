@@ -86,6 +86,22 @@ pub enum PrimKind {
     Pyramid,
     Prism,
     Gear,
+    // Engineering parts
+    Thread,
+    Spring,
+    Knurl,
+    Spline,
+    IBeam,
+    TSlot,
+    Rack,
+    Sprocket,
+    Bearing,
+    Cam,
+    Dovetail,
+    CskHole,
+    HexBolt,
+    Star,
+    Cross,
 }
 
 /// A complete primitive block: `cube ... end`.
@@ -93,6 +109,7 @@ pub enum PrimKind {
 pub struct PrimitiveBlock {
     pub kind: PrimKind,
     pub units: Option<Unit>,
+    pub style: Option<String>,
     pub props: Vec<Prop>,
     pub moves: Vec<MoveStmt>,
 }

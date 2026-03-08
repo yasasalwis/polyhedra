@@ -132,9 +132,25 @@ fn build_primitive(pair: Pair<Rule>) -> Result<PrimitiveBlock> {
         "pyramid" => PrimKind::Pyramid,
         "prism" => PrimKind::Prism,
         "gear" => PrimKind::Gear,
+        "thread" => PrimKind::Thread,
+        "spring" => PrimKind::Spring,
+        "knurl" => PrimKind::Knurl,
+        "spline" => PrimKind::Spline,
+        "i_beam" => PrimKind::IBeam,
+        "t_slot" => PrimKind::TSlot,
+        "rack" => PrimKind::Rack,
+        "sprocket" => PrimKind::Sprocket,
+        "bearing" => PrimKind::Bearing,
+        "cam" => PrimKind::Cam,
+        "dovetail" => PrimKind::Dovetail,
+        "csk_hole" => PrimKind::CskHole,
+        "hex_bolt" => PrimKind::HexBolt,
+        "star" => PrimKind::Star,
+        "cross" => PrimKind::Cross,
         other => return Err(parse_err(format!("unknown primitive: '{other}'"))),
     };
     let mut units = None;
+    let mut style = None;
     let mut props = Vec::new();
     let mut moves = Vec::new();
     for item in inner {
@@ -143,6 +159,9 @@ fn build_primitive(pair: Pair<Rule>) -> Result<PrimitiveBlock> {
             match child.as_rule() {
                 Rule::units_stmt => {
                     units = Some(build_unit(child)?);
+                }
+                Rule::style_stmt => {
+                    style = Some(child.into_inner().next().unwrap().as_str().to_string());
                 }
                 Rule::prop_stmt => {
                     props.push(build_prop(child)?);
@@ -157,6 +176,7 @@ fn build_primitive(pair: Pair<Rule>) -> Result<PrimitiveBlock> {
     Ok(PrimitiveBlock {
         kind,
         units,
+        style,
         props,
         moves,
     })
