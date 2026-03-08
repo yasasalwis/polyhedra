@@ -1,11 +1,12 @@
-# Example 33: Gear Blank
-# A cylindrical gear blank with a raised hub, key slot, and central bore.
-# Used as the starting stock for machining spur gear teeth.
+# Example 33: Spur Gear
+# A 12-tooth spur gear with a central bore and raised hub.
 
-define blank
+define gear_body
   units mm
-  cylinder
-    radius 30
+  gear
+    teeth  12
+    radius 25
+    tooth_height 5
     height 12
   end
 end
@@ -19,15 +20,6 @@ define hub
   end
 end
 
-define key_slot
-  units mm
-  cube
-    width  4
-    depth  8
-    height 20
-  end
-end
-
 define bore
   units mm
   cylinder
@@ -36,11 +28,11 @@ define bore
   end
 end
 
-assemble gear_blank
+assemble spur_gear
   units mm
-  place blank at origin
-  join  hub at origin
-  cut   bore at origin
+  place gear_body at origin
+  join  hub       at origin
+  cut   bore      at origin
 end
 
 export

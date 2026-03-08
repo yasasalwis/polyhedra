@@ -63,7 +63,7 @@ manipulation = {
 
 prim_kw = {
     "cube" | "sphere" | "cylinder" | "cone" |
-    "torus" | "pyramid" | "prism"
+    "torus" | "pyramid" | "prism" | "gear"
 }
 
 prim_body_item = { units_stmt | prop_stmt | move_stmt }

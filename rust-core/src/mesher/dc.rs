@@ -12,11 +12,8 @@
 //!    active edge, and emit up to 5 triangles per the triangle table.
 //!    Vertices are welded via a HashMap keyed by a unique edge identifier to
 //!    avoid duplicates.
-//! 4. **Taubin + SDF-projection smoothing**: each pass alternates a forward
-//!    Laplacian step (λ) and a backward step (μ) to prevent shrinkage, then
-//!    projects every vertex back to the exact zero-isosurface via Newton steps
-//!    along the SDF gradient.  This eliminates all MC staircase artifacts and
-//!    produces analytically smooth surfaces.
+//! 4. **Taubin smoothing**: alternates forward (λ=0.3) and backward (μ=−0.32)
+//!    Laplacian passes to smooth MC staircase artifacts without volume shrinkage.
 //!
 //! # Reference
 //! Lorensen, W. E. & Cline, H. E. — *Marching Cubes: A High Resolution 3D
@@ -69,15 +66,8 @@ pub struct MeshConfig {
     /// QEF regularisation weight (default `1e-4`).
     /// Unused by Marching Cubes but kept for API compatibility.
     pub lambda: f32,
-    /// Taubin + SDF-projection smoothing iterations (default `5`).
-    ///
-    /// Each iteration:
-    ///  1. Forward Laplacian pass (λ = +0.5) — spreads vertex positions
-    ///  2. Backward Laplacian pass (μ = −0.53) — restores volume
-    ///  3. Project every vertex to the exact isosurface via Newton steps
-    ///
-    /// The result is a mesh whose vertices lie exactly on the SDF zero-set
-    /// with a smooth, even distribution — no staircase or ridge artifacts.
+    /// Taubin smoothing iterations to reduce MC staircase artifacts. 3 iterations
+    /// provides smooth curved surfaces while preserving sharp features.
     pub smooth_iterations: u32,
 }
 
@@ -89,7 +79,7 @@ impl MeshConfig {
             bounds_max: Vec3::splat(half),
             resolution,
             lambda: 1e-4,
-            smooth_iterations: 5,
+            smooth_iterations: 3,
         }
     }
 }
@@ -424,6 +414,14 @@ const EDGE_CORNERS: [(usize, usize, usize, usize, usize, usize); 12] = [
 // Direction for each edge: 0=X, 1=Y, 2=Z
 const EDGE_DIR: [u64; 12] = [0, 1, 0, 1, 0, 1, 0, 1, 2, 2, 2, 2];
 
+/// Maps edge-corner offset (da, db, dc) to the corner_vals index.
+/// CORNER_IDX[da][db][dc] = c such that (DI[c], DJ[c], DK[c]) = (da, db, dc).
+const CORNER_IDX: [[[usize; 2]; 2]; 2] = [
+    // da=0:          dc=0  dc=1         dc=0  dc=1
+    [[0, 4], [3, 7]], // db=0: 0,4   db=1: 3,7
+    [[1, 5], [2, 6]], // da=1: db=0: 1,5   db=1: 2,6
+];
+
 // ── MC corner layout ──────────────────────────────────────────────────────────
 // Corner offsets: corner N of cell (i,j,k) is at (i + DI[N], j + DJ[N], k + DK[N])
 const DI: [usize; 8] = [0, 1, 1, 0, 0, 1, 1, 0];
@@ -516,8 +514,8 @@ pub fn mesh(sdf: &dyn Sdf, cfg: &MeshConfig) -> Mesh {
                         existing
                     } else {
                         // Interpolate along the edge.
-                        let va = corner_vals[da0 + db0 * 2 + dc0 * 4];
-                        let vb = corner_vals[da1 + db1 * 2 + dc1 * 4];
+                        let va = corner_vals[CORNER_IDX[da0][db0][dc0]];
+                        let vb = corner_vals[CORNER_IDX[da1][db1][dc1]];
                         let pa = gpos(i + da0, j + db0, k + dc0);
                         let pb = gpos(i + da1, j + db1, k + dc1);
                         let t = if (vb - va).abs() > 1e-8 {
@@ -553,30 +551,24 @@ pub fn mesh(sdf: &dyn Sdf, cfg: &MeshConfig) -> Mesh {
         triangles,
     };
 
-    // ── Step 3: Taubin smoothing + SDF projection ─────────────────────────────
+    // ── Step 3: Taubin smoothing ──────────────────────────────────────────────
     if cfg.smooth_iterations > 0 {
-        taubin_smooth_and_project(&mut m, sdf, cfg.smooth_iterations);
+        taubin_smooth(&mut m, cfg.smooth_iterations);
     }
 
     m
 }
 
-// ── Taubin smoothing + SDF projection ────────────────────────────────────────
+// ── Taubin smoothing ──────────────────────────────────────────────────────────
 
-/// Smooth the mesh using Taubin λ/μ passes interleaved with SDF projection.
+/// Smooth the mesh using Taubin λ/μ passes.
 ///
 /// **Why Taubin?**  Plain Laplacian smoothing shrinks the mesh — every vertex
 /// moves toward its neighbours' centroid, slowly collapsing the surface
 /// inward.  Taubin's method alternates a forward step (λ > 0, smoothing) with
 /// a backward step (μ < 0, anti-shrinkage, |μ| slightly > λ), so low-
 /// frequency shape is preserved while high-frequency MC noise is removed.
-///
-/// **Why SDF projection?**  After the Taubin passes, vertices lie in the right
-/// neighbourhood but may have drifted slightly off the isosurface.  Projecting
-/// each vertex back via Newton steps (`v -= d·∇SDF(v)`) guarantees that every
-/// vertex sits exactly on the zero-set, producing analytically smooth curved
-/// surfaces with no grid-aligned ridge artifacts.
-fn taubin_smooth_and_project(mesh: &mut Mesh, sdf: &dyn Sdf, iterations: u32) {
+fn taubin_smooth(mesh: &mut Mesh, iterations: u32) {
     let nv = mesh.vertices.len();
     if nv == 0 {
         return;
@@ -606,16 +598,14 @@ fn taubin_smooth_and_project(mesh: &mut Mesh, sdf: &dyn Sdf, iterations: u32) {
     // Taubin parameters: λ forward, μ backward.
     // Standard values from Taubin 1995 — μ slightly larger in magnitude than λ
     // so the backward pass undoes the DC component but not the smoothing.
-    const LAMBDA: f32 = 0.5;
-    const MU: f32 = -0.53;
+    const LAMBDA: f32 = 0.3;
+    const MU: f32 = -0.32;
 
     for _ in 0..iterations {
         // Forward pass: move toward neighbour centroid
         laplacian_pass(&mut mesh.vertices, &start, &data, LAMBDA);
         // Backward pass: pull back slightly to prevent shrinkage
         laplacian_pass(&mut mesh.vertices, &start, &data, MU);
-        // Project every vertex to the exact zero-isosurface
-        project_to_surface(&mut mesh.vertices, sdf);
     }
 }
 
@@ -638,23 +628,3 @@ fn laplacian_pass(vertices: &mut Vec<Vec3>, start: &[u32], data: &[u32], weight:
     }
 }
 
-/// Project every vertex to the nearest point on the SDF zero-isosurface using
-/// repeated Newton steps: `v -= sdf(v) · ∇sdf(v)`.
-///
-/// For an exact SDF the gradient magnitude is 1 everywhere, so each step
-/// moves exactly `d` mm toward the surface and converges in 1–2 iterations.
-/// For approximate SDFs (smooth-union, etc.) 5 steps is always sufficient.
-fn project_to_surface(vertices: &mut Vec<Vec3>, sdf: &dyn Sdf) {
-    for v in vertices.iter_mut() {
-        for _ in 0..5 {
-            let d = sdf.distance(*v);
-            if d.abs() < 1e-5 {
-                break;
-            }
-            // sdf.normal() returns the normalised gradient ∇SDF / |∇SDF|.
-            // Moving by d * n is a single Newton step toward the zero-set.
-            let n = sdf.normal(*v);
-            *v -= d * n;
-        }
-    }
-}

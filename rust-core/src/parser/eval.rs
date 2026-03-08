@@ -17,7 +17,7 @@ use crate::manipulations::{OffsetNode, ShellNode};
 use crate::sdf::SdfNode;
 use crate::sdf::operations::{DifferenceNode, IntersectionNode, UnionNode};
 use crate::sdf::primitives::{
-    ConeSdf, CubeSdf, CylinderSdf, PrismSdf, PyramidSdf, SphereSdf, TorusSdf,
+    ConeSdf, CubeSdf, CylinderSdf, GearSdf, PrismSdf, PyramidSdf, SphereSdf, TorusSdf,
 };
 use crate::sdf::transform::Translate;
 
@@ -271,6 +271,28 @@ fn eval_primitive(p: &PrimitiveBlock, parent_scale: f32) -> Result<(SdfNode, f32
             let h = prop("height", 10.0);
             (Box::new(PrismSdf::new(sides, ftf, h)), ftf.max(h) * 0.56)
         }
+        PrimKind::Gear => {
+            let teeth = p
+                .props
+                .iter()
+                .find(|pr| pr.key == "teeth" || pr.key == "n")
+                .map(|pr| pr.value as u32)
+                .unwrap_or(12);
+            let pitch_r = prop2("pitch_radius", "radius", 25.0);
+            let tooth_h = prop("tooth_height", 5.0);
+            let tooth_f = p
+                .props
+                .iter()
+                .find(|pr| pr.key == "tooth_fraction")
+                .map(|pr| pr.value)
+                .unwrap_or(0.5);
+            let h = prop("height", 12.0);
+            let tip_r = pitch_r + tooth_h * 0.5;
+            (
+                Box::new(GearSdf::new(teeth, pitch_r, tooth_h, tooth_f, h)),
+                tip_r.max(h * 0.5) * 1.1,
+            )
+        }
     };
 
     // Apply per-primitive move statements.
@@ -316,15 +338,11 @@ fn apply_manip(node: SdfNode, bounds: f32, m: &Manipulation, scale: f32) -> (Sdf
             )
         }
         Manipulation::Hole { diameter, .. } => {
-            // Approximate: shell with half the diameter as thickness.
-            let t = (diameter * scale) * 0.5;
-            (
-                Box::new(ShellNode {
-                    inner: node,
-                    thickness: t,
-                }),
-                bounds,
-            )
+            // Subtract a tall cylinder through the centre of the shape.
+            let r = (diameter * scale) * 0.5;
+            let h = bounds * 4.0; // tall enough to pierce any reasonable shape
+            let bore: SdfNode = Box::new(CylinderSdf::new(r, h));
+            (Box::new(DifferenceNode { a: node, b: bore }), bounds)
         }
         Manipulation::Thread { .. } | Manipulation::Pattern { .. } => {
             // Not yet implemented at the SDF level; pass through unchanged.

@@ -85,6 +85,7 @@ pub enum PrimKind {
     Torus,
     Pyramid,
     Prism,
+    Gear,
 }
 
 /// A complete primitive block: `cube ... end`.

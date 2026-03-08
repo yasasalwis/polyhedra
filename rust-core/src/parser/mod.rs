@@ -131,6 +131,7 @@ fn build_primitive(pair: Pair<Rule>) -> Result<PrimitiveBlock> {
         "torus" => PrimKind::Torus,
         "pyramid" => PrimKind::Pyramid,
         "prism" => PrimKind::Prism,
+        "gear" => PrimKind::Gear,
         other => return Err(parse_err(format!("unknown primitive: '{other}'"))),
     };
     let mut units = None;
