@@ -19,7 +19,7 @@
 //! Fold the XY point into the canonical sector `[0, π/n]` using the n-fold
 //! symmetry, then compute the signed distance to the canonical face segment:
 //!
-//! ```
+//! ```text
 //! sector_angle = |((angle + π/n) mod (2π/n)) − π/n|
 //! px = |p_xy| · cos(sector_angle)
 //! py = |p_xy| · sin(sector_angle)
@@ -30,7 +30,7 @@
 //!
 //! **Step 2 — Exact extrusion (Quilez)**
 //!
-//! ```
+//! ```text
 //! w   = (d_2d, |p.z| − half_height)
 //! SDF = min(max(w.x, w.y), 0) + length(max(w, 0))
 //! ```

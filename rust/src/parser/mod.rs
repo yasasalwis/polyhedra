@@ -7,6 +7,7 @@
 //! - [`parse_file`] — read a file from disk and parse it.
 
 pub mod ast;
+pub mod eval;
 
 use pest::Parser;
 use pest::iterators::Pair;

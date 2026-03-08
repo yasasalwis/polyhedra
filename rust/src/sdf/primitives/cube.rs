@@ -23,9 +23,9 @@ use crate::sdf::Sdf;
 /// [`crate::sdf::TransformedSdf`] with a translation transform.
 ///
 /// # Example
-/// ```
-/// use polyhedra_core::sdf::primitives::CubeSdf;
-/// use polyhedra_core::sdf::Sdf;
+/// ```no_run
+/// use _core::sdf::primitives::CubeSdf;
+/// use _core::sdf::Sdf;
 /// use glam::Vec3;
 ///
 /// let cube = CubeSdf::new(10.0, 10.0, 10.0);

@@ -1,7 +1,7 @@
 ## Overview
 Polyhedra (v2) is a completely redesigned architecture for compiling plain English text into 3D geometry. Built for generating up-to-date, precision engineering parts, it uses an indentation-based language with zero curly-brace or bracket noise. Best suited and designed for LLMs Not for Users! 
 
-This project is currently marked as "Under Review" as of March 7, 2026 (Yeah, I'm designing the core parts and syntax. The syntax is not yet finalized).
+This project is currently marked as "Under Review" as of March 7, 2026 (Yes, I'm designing the core parts and syntax. The syntax is not yet finalized).
 
 ## Tech Stack
 * **Kernel**: Rust 1.94.0.

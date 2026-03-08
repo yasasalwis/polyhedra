@@ -29,7 +29,7 @@ use crate::mesher::Mesh;
 // ── ExportFormat ──────────────────────────────────────────────────────────────
 
 /// Supported export formats.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ExportFormat {
     Stl,
     Obj,
