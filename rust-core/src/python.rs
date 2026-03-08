@@ -6,7 +6,10 @@
 //! - `SdfNode` class — type-erased SDF tree node, all geometry + operations
 //! - `Mesh`    class — meshed geometry, ready for export
 //! - Primitive constructors: `cube`, `sphere`, `cylinder`, `cone`,
-//!                           `torus`, `pyramid`, `prism`
+//!                           `torus`, `pyramid`, `prism`, `gear`
+//! - Engineering parts: `thread`, `spring`, `knurl`, `spline`, `i_beam`,
+//!                      `t_slot`, `rack`, `sprocket`, `bearing`, `cam`,
+//!                      `dovetail`, `csk_hole`, `hex_bolt`, `star`, `cross_section`
 //! - `mesh_sdf(node, resolution, bounds)` — mesh an SDF into a `Mesh`
 //! - `to_stl/obj/ply/glb(mesh)` — export to bytes
 //! - `save_mesh(mesh, path)` — write to file (format inferred from extension)
@@ -26,8 +29,12 @@ use crate::sdf::operations::{
     ChamferUnionNode, DifferenceNode, IntersectionNode, SmoothDifferenceNode, SmoothUnionNode,
     UnionNode,
 };
+use crate::sdf::parts::{
+    BearingSdf, CamSdf, CrossSectionSdf, CskHoleSdf, DovetailSdf, HexBoltSdf, IBeamSdf,
+    KnurlSdf, RackSdf, SplineSdf, SpringSdf, SprocketSdf, StarSdf, ThreadSdf, TSlotSdf,
+};
 use crate::sdf::primitives::{
-    ConeSdf, CubeSdf, CylinderSdf, PrismSdf, PyramidSdf, SphereSdf, TorusSdf,
+    ConeSdf, CubeSdf, CylinderSdf, GearSdf, PrismSdf, PyramidSdf, SphereSdf, TorusSdf,
 };
 use crate::sdf::transform::{Mirror, MirrorPlane, Rotate, Scale, ScaleNonUniform, Translate};
 
@@ -380,6 +387,206 @@ fn prism(sides: u32, flat_to_flat: f32, height: f32) -> PySdfNode {
     PySdfNode::new(PrismSdf::new(sides, flat_to_flat, height))
 }
 
+/// Spur gear centred at the origin, axis along Z.
+///
+/// Args:
+///     teeth         (int):   number of teeth (≥ 3).
+///     pitch_radius  (float): pitch circle radius (mm).
+///     tooth_height  (float): radial height of each tooth (mm).
+///     tooth_fraction (float): tooth width as fraction of pitch (0..1, default 0.5).
+///     height        (float): full gear thickness (mm).
+#[pyfunction]
+fn gear(teeth: u32, pitch_radius: f32, tooth_height: f32, tooth_fraction: f32, height: f32) -> PySdfNode {
+    PySdfNode::new(GearSdf::new(teeth, pitch_radius, tooth_height, tooth_fraction, height))
+}
+
+/// Metric threaded rod centred at the origin, axis along Z.
+///
+/// Args:
+///     outer_radius (float): major (outer) radius (mm).
+///     pitch        (float): thread pitch — mm per turn.
+///     height       (float): total rod length (mm).
+#[pyfunction]
+fn thread(outer_radius: f32, pitch: f32, height: f32) -> PySdfNode {
+    PySdfNode::new(ThreadSdf::new(outer_radius, pitch, height))
+}
+
+/// Coil spring centred at the origin, axis along Z.
+///
+/// Args:
+///     coil_radius  (float): radius from spring axis to wire centre (mm).
+///     wire_radius  (float): wire cross-section radius (mm).
+///     pitch        (float): axial distance per turn (mm).
+///     turns        (float): number of coils.
+#[pyfunction]
+fn spring(coil_radius: f32, wire_radius: f32, pitch: f32, turns: f32) -> PySdfNode {
+    PySdfNode::new(SpringSdf::new(coil_radius, wire_radius, pitch, turns))
+}
+
+/// Knurled cylinder centred at the origin, axis along Z.
+///
+/// Args:
+///     radius      (float): base cylinder radius (mm).
+///     height      (float): total height (mm).
+///     bump_depth  (float): bump amplitude (mm).
+///     n_rows      (int):   number of rows around circumference.
+///     pitch       (float): axial bump pitch (mm).
+#[pyfunction]
+fn knurl(radius: f32, height: f32, bump_depth: f32, n_rows: u32, pitch: f32) -> PySdfNode {
+    PySdfNode::new(KnurlSdf::new(radius, height, bump_depth, n_rows, pitch))
+}
+
+/// Splined shaft centred at the origin, axis along Z.
+///
+/// Args:
+///     pitch_radius   (float): base circle radius (mm).
+///     tooth_height   (float): radial height of each spline tooth (mm).
+///     height         (float): shaft length (mm).
+///     n_splines      (int):   number of splines.
+///     tooth_fraction (float): tooth width fraction (0..1).
+#[pyfunction]
+fn spline(pitch_radius: f32, tooth_height: f32, height: f32, n_splines: u32, tooth_fraction: f32) -> PySdfNode {
+    PySdfNode::new(SplineSdf::new(pitch_radius, tooth_height, height, n_splines, tooth_fraction))
+}
+
+/// I-beam / H-beam centred at the origin, extruded along Z.
+///
+/// Args:
+///     flange_width     (float): full flange width (mm).
+///     flange_thickness (float): flange plate thickness (mm).
+///     web_height       (float): web height between flanges (mm).
+///     web_thickness    (float): web plate thickness (mm).
+///     length           (float): beam length along Z (mm).
+#[pyfunction]
+fn i_beam(flange_width: f32, flange_thickness: f32, web_height: f32, web_thickness: f32, length: f32) -> PySdfNode {
+    PySdfNode::new(IBeamSdf::new(flange_width, flange_thickness, web_height, web_thickness, length))
+}
+
+/// T-slot aluminium extrusion centred at the origin, extruded along Z.
+///
+/// Args:
+///     side            (float): square cross-section side length (mm).
+///     slot_width      (float): T-slot mouth width (mm).
+///     slot_head_width (float): T-slot head (inner) width (mm).
+///     slot_depth      (float): T-slot depth from face (mm).
+///     length          (float): extrusion length along Z (mm).
+#[pyfunction]
+fn t_slot(side: f32, slot_width: f32, slot_head_width: f32, slot_depth: f32, length: f32) -> PySdfNode {
+    PySdfNode::new(TSlotSdf::new(side, slot_width, slot_head_width, slot_depth, length))
+}
+
+/// Gear rack centred at the origin, teeth on the +Y face.
+///
+/// Args:
+///     length         (float): rack length along X (mm).
+///     width          (float): bar width along Y (mm).
+///     height         (float): bar height along Z (mm).
+///     tooth_height   (float): tooth height above bar (mm).
+///     pitch          (float): tooth pitch along X (mm).
+///     tooth_fraction (float): tooth width / pitch (0..1).
+#[pyfunction]
+fn rack(length: f32, width: f32, height: f32, tooth_height: f32, pitch: f32, tooth_fraction: f32) -> PySdfNode {
+    PySdfNode::new(RackSdf::new(length, width, height, tooth_height, pitch, tooth_fraction))
+}
+
+/// Chain sprocket centred at the origin, axis along Z.
+///
+/// Args:
+///     pitch_radius (float): radius to tooth tips base circle (mm).
+///     tooth_height (float): radial tooth height (mm).
+///     bore_radius  (float): central bore radius (mm).
+///     height       (float): sprocket thickness (mm).
+///     n_teeth      (int):   number of teeth.
+#[pyfunction]
+fn sprocket(pitch_radius: f32, tooth_height: f32, bore_radius: f32, height: f32, n_teeth: u32) -> PySdfNode {
+    PySdfNode::new(SprocketSdf::new(pitch_radius, tooth_height, bore_radius, height, n_teeth))
+}
+
+/// Ball bearing centred at the origin, axis along Z.
+///
+/// Args:
+///     outer_radius (float): outer race outer radius (mm).
+///     inner_radius (float): inner race inner radius (mm).
+///     height       (float): bearing height (mm).
+///     n_balls      (int):   number of rolling balls.
+#[pyfunction]
+fn bearing(outer_radius: f32, inner_radius: f32, height: f32, n_balls: u32) -> PySdfNode {
+    PySdfNode::new(BearingSdf::new(outer_radius, inner_radius, height, n_balls))
+}
+
+/// Eccentric disc cam centred at the origin, extruded along Z.
+///
+/// Args:
+///     cam_radius    (float): disc radius (mm).
+///     eccentricity  (float): offset of disc centre from origin (mm).
+///     height        (float): cam thickness (mm).
+#[pyfunction]
+fn cam(cam_radius: f32, eccentricity: f32, height: f32) -> PySdfNode {
+    PySdfNode::new(CamSdf::new(cam_radius, eccentricity, height))
+}
+
+/// Dovetail slide centred at the origin, extruded along Z.
+///
+/// Args:
+///     top_width      (float): narrow end width (mm).
+///     bottom_width   (float): wide end width (mm).
+///     profile_height (float): trapezoidal cross-section height (mm).
+///     length         (float): extrusion length along Z (mm).
+#[pyfunction]
+fn dovetail(top_width: f32, bottom_width: f32, profile_height: f32, length: f32) -> PySdfNode {
+    PySdfNode::new(DovetailSdf::new(top_width, bottom_width, profile_height, length))
+}
+
+/// Countersunk hole opening at z=0, boring down the -Z axis.
+///
+/// The SDF is negative (interior) inside the hole — combine with `difference`
+/// to cut this from a solid body.
+///
+/// Args:
+///     bore_diameter (float): cylindrical bore diameter (mm).
+///     csk_diameter  (float): countersink outer diameter at the surface (mm).
+///     csk_depth     (float): axial depth of the conical countersink (mm).
+///     total_depth   (float): total hole depth (mm).
+#[pyfunction]
+fn csk_hole(bore_diameter: f32, csk_diameter: f32, csk_depth: f32, total_depth: f32) -> PySdfNode {
+    PySdfNode::new(CskHoleSdf::new(bore_diameter, csk_diameter, csk_depth, total_depth))
+}
+
+/// Hex bolt with origin at the shank tip, axis along +Z through shank then head.
+///
+/// Args:
+///     across_flats  (float): hex head AF dimension (mm).
+///     head_height   (float): head height (mm).
+///     shank_diameter (float): shank diameter (mm).
+///     shank_length  (float): shank length (mm).
+#[pyfunction]
+fn hex_bolt(across_flats: f32, head_height: f32, shank_diameter: f32, shank_length: f32) -> PySdfNode {
+    PySdfNode::new(HexBoltSdf::new(across_flats, head_height, shank_diameter, shank_length))
+}
+
+/// N-pointed star prism centred at the origin, extruded along Z.
+///
+/// Args:
+///     outer_radius (float): tip radius (mm).
+///     inner_radius (float): valley radius (mm).
+///     n_points     (int):   number of star points.
+///     height       (float): extrusion height (mm).
+#[pyfunction]
+fn star(outer_radius: f32, inner_radius: f32, n_points: u32, height: f32) -> PySdfNode {
+    PySdfNode::new(StarSdf::new(outer_radius, inner_radius, n_points, height))
+}
+
+/// Plus/cross profile prism centred at the origin, extruded along Z.
+///
+/// Args:
+///     arm_width  (float): width of each arm (mm).
+///     arm_length (float): full length of each arm from tip to tip (mm).
+///     height     (float): extrusion height (mm).
+#[pyfunction]
+fn cross_section(arm_width: f32, arm_length: f32, height: f32) -> PySdfNode {
+    PySdfNode::new(CrossSectionSdf::new(arm_width, arm_length, height))
+}
+
 // ── Meshing ───────────────────────────────────────────────────────────────────
 
 /// Mesh an SDF node using Dual Contouring.
@@ -427,6 +634,24 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(torus, m)?)?;
     m.add_function(wrap_pyfunction!(pyramid, m)?)?;
     m.add_function(wrap_pyfunction!(prism, m)?)?;
+    m.add_function(wrap_pyfunction!(gear, m)?)?;
+
+    // Engineering part constructors
+    m.add_function(wrap_pyfunction!(thread, m)?)?;
+    m.add_function(wrap_pyfunction!(spring, m)?)?;
+    m.add_function(wrap_pyfunction!(knurl, m)?)?;
+    m.add_function(wrap_pyfunction!(spline, m)?)?;
+    m.add_function(wrap_pyfunction!(i_beam, m)?)?;
+    m.add_function(wrap_pyfunction!(t_slot, m)?)?;
+    m.add_function(wrap_pyfunction!(rack, m)?)?;
+    m.add_function(wrap_pyfunction!(sprocket, m)?)?;
+    m.add_function(wrap_pyfunction!(bearing, m)?)?;
+    m.add_function(wrap_pyfunction!(cam, m)?)?;
+    m.add_function(wrap_pyfunction!(dovetail, m)?)?;
+    m.add_function(wrap_pyfunction!(csk_hole, m)?)?;
+    m.add_function(wrap_pyfunction!(hex_bolt, m)?)?;
+    m.add_function(wrap_pyfunction!(star, m)?)?;
+    m.add_function(wrap_pyfunction!(cross_section, m)?)?;
 
     // Meshing
     m.add_function(wrap_pyfunction!(mesh_sdf, m)?)?;

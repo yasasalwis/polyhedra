@@ -7,7 +7,7 @@ name            = "polyhedra"
 version         = "0.1.0"
 description     = "Plain-English 3D design library — Rust-powered, Python-friendly"
 readme          = { file = "../README.md", content-type = "text/markdown" }
-license         = { file = "../LICENSE" }
+license         = { text = "MIT" }
 requires-python = ">=3.9"
 authors         = [{ name = "Polyhedra Contributors" }]
 keywords        = ["3d", "cad", "geometry", "modeling", "sdf", "stl", "mesh"]
@@ -47,5 +47,4 @@ python-source = "."
 module-name   = "polyhedra._core"
 # Enable the PyO3 extension-module feature when maturin builds
 features      = ["python"]
-# Strip debug symbols from release builds to reduce wheel size
-strip         = true
+# Note: strip = true causes conflicts with maturin develop; strip via cargo profile instead

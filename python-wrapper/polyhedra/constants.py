@@ -17,6 +17,25 @@ CONE     = 3  # ph.Object(ph.CONE,     base_radius, top_radius, height)
 TORUS    = 4  # ph.Object(ph.TORUS,    major_radius, minor_radius)
 PYRAMID  = 5  # ph.Object(ph.PYRAMID,  base_width, base_depth, height)
 PRISM    = 6  # ph.Object(ph.PRISM,    sides, flat_to_flat, height)
+GEAR     = 7  # ph.Object(ph.GEAR,     teeth, pitch_radius, tooth_height, tooth_fraction, height)
+
+# ── Engineering part type constants ────────────────────────────────────────
+
+THREAD        = 10  # ph.Object(ph.THREAD,     outer_radius, pitch, height)
+SPRING        = 11  # ph.Object(ph.SPRING,     coil_radius, wire_radius, pitch, turns)
+KNURL         = 12  # ph.Object(ph.KNURL,      radius, height, bump_depth, n_rows, pitch)
+SPLINE        = 13  # ph.Object(ph.SPLINE,     pitch_radius, tooth_height, height, n_splines, tooth_fraction)
+I_BEAM        = 14  # ph.Object(ph.I_BEAM,     flange_width, flange_thickness, web_height, web_thickness, length)
+T_SLOT        = 15  # ph.Object(ph.T_SLOT,     side, slot_width, slot_head_width, slot_depth, length)
+RACK          = 16  # ph.Object(ph.RACK,       length, width, height, tooth_height, pitch, tooth_fraction)
+SPROCKET      = 17  # ph.Object(ph.SPROCKET,   pitch_radius, tooth_height, bore_radius, height, n_teeth)
+BEARING       = 18  # ph.Object(ph.BEARING,    outer_radius, inner_radius, height, n_balls)
+CAM           = 19  # ph.Object(ph.CAM,        cam_radius, eccentricity, height)
+DOVETAIL      = 20  # ph.Object(ph.DOVETAIL,   top_width, bottom_width, profile_height, length)
+CSK_HOLE      = 21  # ph.Object(ph.CSK_HOLE,   bore_diameter, csk_diameter, csk_depth, total_depth)
+HEX_BOLT      = 22  # ph.Object(ph.HEX_BOLT,   across_flats, head_height, shank_diameter, shank_length)
+STAR          = 23  # ph.Object(ph.STAR,       outer_radius, inner_radius, n_points, height)
+CROSS_SECTION = 24  # ph.Object(ph.CROSS_SECTION, arm_width, arm_length, height)
 
 
 # ── Plane helpers ─────────────────────────────────────────────────────────

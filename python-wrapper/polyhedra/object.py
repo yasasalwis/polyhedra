@@ -375,7 +375,11 @@ def _build_primitive(shape: int, args: tuple) -> tuple:
     Returns:
         (SdfNode, bounds_hint_mm)
     """
-    from .constants import CUBE, CYLINDER, SPHERE, CONE, TORUS, PYRAMID, PRISM
+    from .constants import (
+        CUBE, CYLINDER, SPHERE, CONE, TORUS, PYRAMID, PRISM, GEAR,
+        THREAD, SPRING, KNURL, SPLINE, I_BEAM, T_SLOT, RACK, SPROCKET,
+        BEARING, CAM, DOVETAIL, CSK_HOLE, HEX_BOLT, STAR, CROSS_SECTION,
+    )
     c = _core()
 
     if shape == CUBE:
@@ -401,10 +405,66 @@ def _build_primitive(shape: int, args: tuple) -> tuple:
         ftf   = float(args[1])
         h     = float(args[2])
         return c.prism(sides, ftf, h), max(ftf, h) * 0.56
+    if shape == GEAR:
+        teeth = int(args[0])
+        pr, th, tf, h = float(args[1]), float(args[2]), float(args[3]), float(args[4])
+        return c.gear(teeth, pr, th, tf, h), (pr + th) * 1.2
+
+    # ── Engineering parts ──────────────────────────────────────────────────
+    if shape == THREAD:
+        outer_r, pitch, h = float(args[0]), float(args[1]), float(args[2])
+        return c.thread(outer_r, pitch, h), max(outer_r * 2, h) * 0.56
+    if shape == SPRING:
+        cr, wr, pitch, turns = float(args[0]), float(args[1]), float(args[2]), float(args[3])
+        return c.spring(cr, wr, pitch, turns), (cr + wr) * 2.2
+    if shape == KNURL:
+        r, h, bd, nr, p = float(args[0]), float(args[1]), float(args[2]), int(args[3]), float(args[4])
+        return c.knurl(r, h, bd, nr, p), max(r * 2, h) * 0.56
+    if shape == SPLINE:
+        pr, th, h, ns, tf = float(args[0]), float(args[1]), float(args[2]), int(args[3]), float(args[4])
+        return c.spline(pr, th, h, ns, tf), max((pr + th) * 2, h) * 0.56
+    if shape == I_BEAM:
+        fw, ft, wh, wt, l = float(args[0]), float(args[1]), float(args[2]), float(args[3]), float(args[4])
+        return c.i_beam(fw, ft, wh, wt, l), max(fw, wh + 2 * ft, l) * 0.56
+    if shape == T_SLOT:
+        side, sw, shw, sd, l = float(args[0]), float(args[1]), float(args[2]), float(args[3]), float(args[4])
+        return c.t_slot(side, sw, shw, sd, l), max(side, l) * 0.56
+    if shape == RACK:
+        length, w, h, th, p, tf = (float(args[0]), float(args[1]), float(args[2]),
+                                    float(args[3]), float(args[4]), float(args[5]))
+        return c.rack(length, w, h, th, p, tf), max(length, w, h + th) * 0.56
+    if shape == SPROCKET:
+        pr, th, br, h, nt = float(args[0]), float(args[1]), float(args[2]), float(args[3]), int(args[4])
+        return c.sprocket(pr, th, br, h, nt), (pr + th) * 1.2
+    if shape == BEARING:
+        outer_r, inner_r, h, nb = float(args[0]), float(args[1]), float(args[2]), int(args[3])
+        return c.bearing(outer_r, inner_r, h, nb), max(outer_r * 2, h) * 0.56
+    if shape == CAM:
+        cr, ecc, h = float(args[0]), float(args[1]), float(args[2])
+        return c.cam(cr, ecc, h), (cr + ecc) * 1.2
+    if shape == DOVETAIL:
+        tw, bw, ph_, l = float(args[0]), float(args[1]), float(args[2]), float(args[3])
+        return c.dovetail(tw, bw, ph_, l), max(bw, ph_, l) * 0.56
+    if shape == CSK_HOLE:
+        bd, csd, csd2, td = float(args[0]), float(args[1]), float(args[2]), float(args[3])
+        return c.csk_hole(bd, csd, csd2, td), max(csd, td) * 0.56
+    if shape == HEX_BOLT:
+        af, hh, sd, sl = float(args[0]), float(args[1]), float(args[2]), float(args[3])
+        return c.hex_bolt(af, hh, sd, sl), max(af, sl + hh) * 0.56
+    if shape == STAR:
+        outer_r, inner_r, np_, h = float(args[0]), float(args[1]), float(args[2]), float(args[3])
+        np_ = int(np_)
+        return c.star(outer_r, inner_r, np_, h), max(outer_r * 2, h) * 0.56
+    if shape == CROSS_SECTION:
+        aw, al, h = float(args[0]), float(args[1]), float(args[2])
+        return c.cross_section(aw, al, h), max(al, h) * 0.56
+
     raise ValueError(
         f"Unknown shape type {shape!r}. "
-        f"Use ph.CUBE, ph.SPHERE, ph.CYLINDER, ph.CONE, "
-        f"ph.TORUS, ph.PYRAMID, or ph.PRISM."
+        f"Use ph.CUBE, ph.SPHERE, ph.CYLINDER, ph.CONE, ph.TORUS, ph.PYRAMID, "
+        f"ph.PRISM, ph.GEAR, ph.THREAD, ph.SPRING, ph.KNURL, ph.SPLINE, "
+        f"ph.I_BEAM, ph.T_SLOT, ph.RACK, ph.SPROCKET, ph.BEARING, ph.CAM, "
+        f"ph.DOVETAIL, ph.CSK_HOLE, ph.HEX_BOLT, ph.STAR, or ph.CROSS_SECTION."
     )
 
 

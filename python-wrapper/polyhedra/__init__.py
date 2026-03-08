@@ -48,6 +48,22 @@ from .constants import (
     TORUS,
     PYRAMID,
     PRISM,
+    GEAR,
+    THREAD,
+    SPRING,
+    KNURL,
+    SPLINE,
+    I_BEAM,
+    T_SLOT,
+    RACK,
+    SPROCKET,
+    BEARING,
+    CAM,
+    DOVETAIL,
+    CSK_HOLE,
+    HEX_BOLT,
+    STAR,
+    CROSS_SECTION,
     planes,
 )
 
@@ -85,8 +101,12 @@ except ImportError:
 # ── Public API ─────────────────────────────────────────────────────────────────
 
 __all__ = [
-    # Shape type constants
-    "CUBE", "CYLINDER", "SPHERE", "CONE", "TORUS", "PYRAMID", "PRISM",
+    # Primitive shape constants
+    "CUBE", "CYLINDER", "SPHERE", "CONE", "TORUS", "PYRAMID", "PRISM", "GEAR",
+    # Engineering part constants
+    "THREAD", "SPRING", "KNURL", "SPLINE", "I_BEAM", "T_SLOT", "RACK",
+    "SPROCKET", "BEARING", "CAM", "DOVETAIL", "CSK_HOLE", "HEX_BOLT",
+    "STAR", "CROSS_SECTION",
     # Construction planes
     "planes",
     # Core classes
