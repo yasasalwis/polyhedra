@@ -66,7 +66,7 @@ __version__ = "0.1.0"
 # operations are actually attempted — not on `import polyhedra`.
 
 try:
-    from . import _core  # noqa: F401 — verify it's importable
+    import polyhedra._core  # noqa: F401 — verify it's importable
     _core_available = True
 except ImportError:
     _core_available = False
